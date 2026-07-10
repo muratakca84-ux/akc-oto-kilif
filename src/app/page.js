@@ -1,35 +1,79 @@
-const PHONE_DISPLAY = "+90 500 000 00 00";
-const PHONE_HREF = "tel:+905000000000";
+"use client";
 
-const WHATSAPP_NUMBER = "905000000000";
+/* eslint-disable @next/next/no-img-element */
 
-const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
+import { useEffect, useMemo, useState } from "react";
+import {
+  collection,
+  doc,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-const REGISTER_REQUEST_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20yetkili%20kullan%C4%B1c%C4%B1%20kay%C4%B1t%20talebi%20olu%C5%9Fturmak%20istiyorum.`;
+const fallbackSettings = {
+  businessName: "AKC Oto Kılıf",
+  heroTitle: "Aracınıza özel oto kılıf ve döşeme çözümleri.",
+  heroSubtitle:
+    "AKC Oto Kılıf; binek, SUV, hafif ticari, taksi, servis ve filo araçları için ölçülü, dayanıklı, şık ve profesyonel montajlı oto kılıf hizmeti sunar.",
+  phone: "+90 500 000 00 00",
+  whatsapp: "905000000000",
+  email: "info@akcotokilif.com",
+  address: "Adres bilgisi eklenecek",
+  instagram: "",
+  workingHours: "Hafta içi / Cumartesi",
+  heroImageUrl: "",
+  googleMapsUrl: "",
+};
 
-const EMAIL_HREF = "mailto:info@akcotokilif.com";
-
-const services = [
+const fallbackServices = [
   {
     title: "Araca Özel Oto Kılıf",
-    text: "Araç marka, model, yıl ve koltuk yapısına göre hazırlanan; koltuğa net oturan, potluk yapmayan özel dikim kılıf çözümleri.",
+    category: "Binek Araç",
+    material: "Deri görünümlü",
+    priceText: "Teklif alınız",
+    description:
+      "Araç marka, model, yıl ve koltuk yapısına göre hazırlanan; koltuğa net oturan, potluk yapmayan özel dikim kılıf çözümleri.",
     icon: "✦",
   },
   {
     title: "Profesyonel Montaj",
-    text: "Koltuk formunu bozmadan, airbag ve emniyet detaylarına dikkat edilerek yapılan temiz, kontrollü ve özenli montaj.",
+    category: "Montaj",
+    material: "Kontrollü uygulama",
+    priceText: "Teklif alınız",
+    description:
+      "Koltuk formunu bozmadan, airbag ve emniyet detaylarına dikkat edilerek yapılan temiz, kontrollü ve özenli montaj.",
     icon: "◆",
   },
   {
     title: "Koltuk Döşeme Yenileme",
-    text: "Yıpranmış, solmuş veya eskimiş koltuklar için deri, kumaş ve kombin malzeme seçenekleriyle yenileme hizmeti.",
+    category: "Döşeme",
+    material: "Deri / Kumaş",
+    priceText: "Teklif alınız",
+    description:
+      "Yıpranmış, solmuş veya eskimiş koltuklar için deri, kumaş ve kombin malzeme seçenekleriyle yenileme hizmeti.",
     icon: "◈",
   },
   {
     title: "Ticari Araç Çözümleri",
-    text: "Taksi, servis, filo ve hafif ticari araçlar için uzun ömürlü, kolay temizlenebilir ve yoğun kullanıma uygun çözümler.",
+    category: "Filo",
+    material: "Dayanıklı kullanım",
+    priceText: "Teklif alınız",
+    description:
+      "Taksi, servis, filo ve hafif ticari araçlar için uzun ömürlü, kolay temizlenebilir ve yoğun kullanıma uygun çözümler.",
     icon: "⬢",
   },
+];
+
+const fallbackGallery = [
+  { title: "Premium deri görünüm", tag: "Premium", imageUrl: "" },
+  { title: "Spor dikiş detayları", tag: "Detay", imageUrl: "" },
+  { title: "Kumaş + deri kombin", tag: "Kombin", imageUrl: "" },
+  { title: "Filo tipi dayanıklı kullanım", tag: "Filo", imageUrl: "" },
+  { title: "Araç içi yenileme", tag: "Yenileme", imageUrl: "" },
+  { title: "Özel renk uygulamaları", tag: "Tasarım", imageUrl: "" },
 ];
 
 const categories = [
@@ -48,27 +92,18 @@ const steps = [
   "Üretim ve profesyonel montaj süreci tamamlanır.",
 ];
 
-const gallery = [
-  "Premium deri görünüm",
-  "Spor dikiş detayları",
-  "Kumaş + deri kombin",
-  "Filo tipi dayanıklı kullanım",
-  "Araç içi yenileme",
-  "Özel renk uygulamaları",
-];
-
 const advantages = [
   "Model uyumlu ölçü mantığı",
   "Koltuğa oturan temiz görünüm",
   "Yoğun kullanıma uygun malzeme",
   "Kurumsal araçlar için filo çözümü",
   "WhatsApp üzerinden hızlı teklif",
-  "Admin panel ile yönetilebilir altyapı",
+  "Panelden yönetilebilir içerik altyapısı",
 ];
 
 const adminFeatures = [
   "Ürün ve hizmet kartları yönetimi",
-  "Galeri ve portfolyo alanı yönetimi",
+  "Galeri ve portfolyo görsel yönetimi",
   "Müşteri taleplerini takip etme",
   "Telefon, WhatsApp, adres ve site metinlerini düzenleme",
 ];
@@ -92,14 +127,130 @@ const faqs = [
   },
 ];
 
+function onlyDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+function formatPrice(value, currency = "TRY") {
+  const number = Number(value);
+
+  if (!Number.isFinite(number) || number <= 0) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(number);
+}
+
+function getProductPricing(product) {
+  const currency = product?.currency || "TRY";
+  const note = String(product?.priceText || "").trim();
+
+  if (product?.showPrice === false) {
+    return {
+      oldText: "",
+      finalText: note || "Teklif alınız",
+      note: "",
+    };
+  }
+
+  const normalPrice = formatPrice(product?.priceAmount, currency);
+  const discountPrice = formatPrice(product?.discountPriceAmount, currency);
+
+  if (discountPrice) {
+    return {
+      oldText: normalPrice,
+      finalText: discountPrice,
+      note: note && note !== "Teklif alınız" ? note : "",
+    };
+  }
+
+  if (normalPrice) {
+    return {
+      oldText: "",
+      finalText: normalPrice,
+      note: note && note !== "Teklif alınız" ? note : "",
+    };
+  }
+
+  return {
+    oldText: "",
+    finalText: note || "Teklif alınız",
+    note: "",
+  };
+}
 export default function Home() {
+  const [settings, setSettings] = useState(fallbackSettings);
+  const [products, setProducts] = useState([]);
+  const [galleryItems, setGalleryItems] = useState([]);
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, "settings", "site"), (snapshot) => {
+      if (snapshot.exists()) {
+        setSettings({ ...fallbackSettings, ...snapshot.data() });
+      }
+    });
+
+    const productQuery = query(
+      collection(db, "products"),
+      orderBy("sortOrder", "asc"),
+      limit(100)
+    );
+
+    const galleryQuery = query(
+      collection(db, "gallery"),
+      orderBy("sortOrder", "asc"),
+      limit(100)
+    );
+
+    const unsubProducts = onSnapshot(productQuery, (snapshot) => {
+      const data = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item) => item.isActive !== false);
+
+      setProducts(data);
+    });
+
+    const unsubGallery = onSnapshot(galleryQuery, (snapshot) => {
+      const data = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item) => item.isActive !== false);
+
+      setGalleryItems(data);
+    });
+
+    return () => {
+      unsubSettings();
+      unsubProducts();
+      unsubGallery();
+    };
+  }, []);
+
+  const phoneDisplay = settings.phone || fallbackSettings.phone;
+  const phoneHref = `tel:+${onlyDigits(phoneDisplay)}`;
+  const whatsappNumber = onlyDigits(settings.whatsapp || settings.phone);
+  const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
+  const emailHref = `mailto:${settings.email || fallbackSettings.email}`;
+
+  const serviceItems = useMemo(
+    () => (products.length ? products : fallbackServices),
+    [products]
+  );
+
+  const galleryData = useMemo(
+    () => (galleryItems.length ? galleryItems : fallbackGallery),
+    [galleryItems]
+  );
+
   return (
     <main className="site-shell">
       <nav className="navbar">
         <a className="brand" href="#top" aria-label="AKC Oto Kılıf Ana Sayfa">
           <span className="brand-mark">AKC</span>
           <span>
-            <strong>AKC Oto Kılıf</strong>
+            <strong>{settings.businessName || "AKC Oto Kılıf"}</strong>
             <small>Özel dikim • Döşeme • Profesyonel montaj</small>
           </span>
         </a>
@@ -110,10 +261,11 @@ export default function Home() {
           <a href="#galeri">Galeri</a>
           <a href="#kurumsal">Kurumsal</a>
           <a href="#iletisim">İletişim</a>
-          <a href="/login">Giriş Yap</a>
+          <a href="/login">Giriş</a>
+          <a href="/register">Üye Ol</a>
         </div>
 
-        <a className="nav-cta" href={PHONE_HREF}>
+        <a className="nav-cta" href={phoneHref}>
           Hemen Ara
         </a>
       </nav>
@@ -123,22 +275,18 @@ export default function Home() {
           <p className="eyebrow">Araç iç mekânında net işçilik, premium duruş</p>
 
           <h1>
-            Aracınıza özel
-            <span>oto kılıf ve döşeme</span>
-            çözümleri.
+            {settings.heroTitle || fallbackSettings.heroTitle}
+            <span>AKC standardı.</span>
           </h1>
 
           <p className="hero-text">
-            AKC Oto Kılıf; binek, SUV, hafif ticari, taksi, servis ve filo
-            araçları için ölçülü, dayanıklı, şık ve profesyonel montajlı oto
-            kılıf hizmeti sunar. Amaç sadece kılıf takmak değil; aracın iç
-            mekânını daha temiz, daha güçlü ve daha kullanışlı hale getirmektir.
+            {settings.heroSubtitle || fallbackSettings.heroSubtitle}
           </p>
 
           <div className="hero-actions">
             <a
               className="primary-btn"
-              href={WHATSAPP_HREF}
+              href={whatsappHref}
               target="_blank"
               rel="noreferrer"
             >
@@ -149,8 +297,8 @@ export default function Home() {
               Hizmetleri İncele
             </a>
 
-            <a className="secondary-btn" href="/login">
-              Yetkili Girişi
+            <a className="secondary-btn" href="/register">
+              Üye Ol
             </a>
           </div>
 
@@ -170,15 +318,26 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-card" aria-label="AKC Oto Kılıf hizmet kartı">
+        <div
+          className={`hero-card ${settings.heroImageUrl ? "hero-card-photo" : ""}`}
+          aria-label="AKC Oto Kılıf hizmet kartı"
+        >
           <div className="card-glow" />
 
-          <div className="mock-car">
-            <div className="windshield" />
-            <div className="seat seat-left" />
-            <div className="seat seat-right" />
-            <div className="console" />
-          </div>
+          {settings.heroImageUrl ? (
+            <img
+              className="hero-photo"
+              src={settings.heroImageUrl}
+              alt="AKC Oto Kılıf araç içi uygulama görseli"
+            />
+          ) : (
+            <div className="mock-car">
+              <div className="windshield" />
+              <div className="seat seat-left" />
+              <div className="seat seat-right" />
+              <div className="console" />
+            </div>
+          )}
 
           <div className="quality-card">
             <span>Premium İç Mekân</span>
@@ -205,11 +364,48 @@ export default function Home() {
         </div>
 
         <div className="service-grid">
-          {services.map((service) => (
-            <article className="service-card" key={service.title}>
-              <span>{service.icon}</span>
+          {serviceItems.map((service, index) => (
+            <article
+              className={`service-card ${
+                service.imageUrl ? "service-card-with-image" : ""
+              }`}
+              key={service.id || service.title}
+            >
+              {service.imageUrl ? (
+                <div className="service-image">
+                  <img src={service.imageUrl} alt={service.title} />
+                </div>
+              ) : (
+                <span>{service.icon || String(index + 1).padStart(2, "0")}</span>
+              )}
+
+              <small className="service-meta">
+                {service.category || "AKC"} • {service.material || "Özel üretim"}
+              </small>
+
               <h3>{service.title}</h3>
-              <p>{service.text}</p>
+
+              <p>{service.description || service.text}</p>
+
+           {(() => {
+  const price = getProductPricing(service);
+
+  return (
+    <div className="service-price-box">
+      <span className="price-label">
+       {price.hasRealPrice ? "Fiyat" : "Fiyat"}
+      </span>
+
+      <div className="price-line">
+        {price.oldText ? <del>{price.oldText}</del> : null}
+
+        <strong className="service-price">{price.finalText}</strong>
+      </div>
+
+      {price.note ? <small>{price.note}</small> : null}
+    </div>
+  );
+})()}
             </article>
           ))}
         </div>
@@ -257,19 +453,28 @@ export default function Home() {
       <section id="galeri" className="section gallery-section">
         <div className="section-head">
           <p className="eyebrow">Galeri</p>
-          <h2>Gerçek işler geldikçe burası AKC’nin vitrini olacak.</h2>
+          <h2>Panelden yüklenen işler burada kurumsal vitrine dönüşür.</h2>
           <p>
-            Bu alan portfolyo düzeni için hazırlandı. Montaj öncesi-sonrası,
-            detay dikiş, koltuk yakın plan ve araç iç mekân çekimleri
-            eklendikçe site çok daha güçlü bir satış vitrini haline gelir.
+            Admin panelden galeri görseli yükledikçe bu alan gerçek montaj,
+            detay dikiş, koltuk yakın plan ve araç iç mekân çekimleriyle
+            otomatik güncellenir.
           </p>
         </div>
 
         <div className="gallery-grid">
-          {gallery.map((item, index) => (
-            <div className="gallery-card" key={item}>
-              <span>0{index + 1}</span>
-              <strong>{item}</strong>
+          {galleryData.map((item, index) => (
+            <div
+              className={`gallery-card ${item.imageUrl ? "gallery-card-image" : ""}`}
+              key={item.id || item.title}
+            >
+              {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.title} />
+              ) : null}
+
+              <div className="gallery-card-content">
+                <span>{item.tag || `0${index + 1}`}</span>
+                <strong>{item.title}</strong>
+              </div>
             </div>
           ))}
         </div>
@@ -297,13 +502,8 @@ export default function Home() {
               Giriş Yap
             </a>
 
-            <a
-              className="secondary-btn"
-              href={REGISTER_REQUEST_HREF}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Kayıt Talebi
+            <a className="secondary-btn" href="/register">
+              Üye Ol
             </a>
           </div>
         </div>
@@ -314,9 +514,8 @@ export default function Home() {
           <p className="eyebrow">Yönetim paneli</p>
           <h2>İşletme büyüdükçe site de seninle birlikte büyür.</h2>
           <p>
-            Admin tarafı; içeriklerin, taleplerin ve vitrin alanlarının tek
-            merkezden yönetilmesi için kurgulanmıştır. Her şeyi koda dokunmadan
-            yönetilebilir hale getirmek hedeflenir.
+            Admin tarafı; içeriklerin, taleplerin, vitrin görsellerinin ve
+            iletişim bilgilerinin tek merkezden yönetilmesi için kurgulanmıştır.
           </p>
         </div>
 
@@ -327,8 +526,8 @@ export default function Home() {
               <h3>{item}</h3>
               <p>
                 AKC panel altyapısı bu alanı yönetilebilir hale getirmek için
-                hazırlandı. Sonraki aşamada görsel yükleme, ürün düzenleme ve
-                müşteri takip ekranları daha da güçlendirilebilir.
+                hazırlandı. Ürün, galeri, müşteri ve site ayarları panelden
+                güncellenebilir.
               </p>
             </article>
           ))}
@@ -380,26 +579,26 @@ export default function Home() {
         </div>
 
         <div className="contact-card">
-          <a href={WHATSAPP_HREF} target="_blank" rel="noreferrer">
-            WhatsApp: {PHONE_DISPLAY}
+          <a href={whatsappHref} target="_blank" rel="noreferrer">
+            WhatsApp: {phoneDisplay}
           </a>
 
-          <a href={PHONE_HREF}>Telefon: {PHONE_DISPLAY}</a>
+          <a href={phoneHref}>Telefon: {phoneDisplay}</a>
 
-          <a href={EMAIL_HREF}>info@akcotokilif.com</a>
+          <a href={emailHref}>{settings.email || fallbackSettings.email}</a>
 
-          <a href="/login">Yetkili Girişi</a>
+          <a href="/login">Giriş Yap</a>
 
           <p>
-            Adres, çalışma saatleri, Instagram ve Google Harita bağlantıları
-            daha sonra buraya eklenecek. Admin panel aktif olduğunda bu alanlar
-            panelden yönetilebilir hale getirilebilir.
+            {settings.address || fallbackSettings.address}
+            <br />
+            {settings.workingHours || fallbackSettings.workingHours}
           </p>
         </div>
       </section>
 
       <footer className="footer">
-        <strong>AKC Oto Kılıf</strong>
+        <strong>{settings.businessName || "AKC Oto Kılıf"}</strong>
         <span>© 2026 • Aracınıza özel kılıf ve döşeme çözümleri</span>
       </footer>
     </main>
