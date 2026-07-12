@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   browserSessionPersistence,
@@ -14,7 +15,7 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 
-const CUSTOMER_AFTER_LOGIN = "/";
+const CUSTOMER_AFTER_LOGIN = "/profil";
 const ADMIN_AFTER_LOGIN = "/admin";
 
 export default function LoginPage() {
@@ -31,7 +32,7 @@ export default function LoginPage() {
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
-  async function getAdminStatus(user) {
+  const getAdminStatus = useCallback(async (user) => {
     if (!user?.uid) return false;
 
     const adminSnap = await getDoc(doc(db, "admins", user.uid));
@@ -40,10 +41,10 @@ export default function LoginPage() {
 
     const adminData = adminSnap.data();
 
-   return adminData?.isActive === true;
-  }
+    return adminData?.isActive === true;
+  }, []);
 
-  async function ensureCustomerProfile(user, provider = "email") {
+  const ensureCustomerProfile = useCallback(async (user, provider = "email") => {
     if (!user?.uid) return;
 
     const userRef = doc(db, "users", user.uid);
@@ -71,9 +72,9 @@ export default function LoginPage() {
       ...payload,
       createdAt: serverTimestamp(),
     });
-  }
+  }, []);
 
-  async function routeAfterLogin(user, provider = "email") {
+  const routeAfterLogin = useCallback(async (user, provider = "email") => {
     const isAdmin = await getAdminStatus(user);
 
     if (isAdmin) {
@@ -85,7 +86,7 @@ export default function LoginPage() {
     await ensureCustomerProfile(user, provider);
     setMessage("Giriş başarılı. Ana sayfaya yönlendiriliyorsunuz...");
     router.replace(CUSTOMER_AFTER_LOGIN);
-  }
+  }, [ensureCustomerProfile, router]);
 
   useEffect(() => {
     let alive = true;
@@ -117,7 +118,7 @@ export default function LoginPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [routeAfterLogin]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -139,7 +140,7 @@ export default function LoginPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [routeAfterLogin]);
 
   async function handleEmailLogin(event) {
     event.preventDefault();
@@ -202,18 +203,18 @@ export default function LoginPage() {
         <div className="auth-card-glow" />
 
         <div className="auth-header">
-          <a className="auth-brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
+          <Link className="auth-brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
             <span className="auth-logo">AKC</span>
 
             <span className="auth-brand-text">
               <strong>AKC Oto Kılıf</strong>
               <small>Müşteri girişi • Yetkili panel</small>
             </span>
-          </a>
+          </Link>
 
-          <a className="auth-home-link" href="/">
+          <Link className="auth-home-link" href="/">
             Siteye dön
-          </a>
+          </Link>
         </div>
 
         <div className="auth-layout">
@@ -288,7 +289,7 @@ export default function LoginPage() {
             </button>
 
             <div className="auth-actions-row">
-              <a href="/register">Üye ol</a>
+              <Link href="/register">Üye ol</Link>
               <a href="mailto:info@akcotokilif.com">Destek al</a>
             </div>
 

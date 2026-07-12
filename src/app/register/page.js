@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   browserSessionPersistence,
@@ -13,7 +14,7 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 
-const CUSTOMER_AFTER_REGISTER = "/";
+const CUSTOMER_AFTER_REGISTER = "/profil";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function RegisterPage() {
   const cleanName = useMemo(() => fullName.trim(), [fullName]);
   const cleanPhone = useMemo(() => phone.trim(), [phone]);
 
-  async function createCustomerProfile(user, provider = "email") {
+  const createCustomerProfile = useCallback(async (user, provider = "email") => {
     if (!user?.uid) return;
 
     const userRef = doc(db, "users", user.uid);
@@ -61,7 +62,7 @@ export default function RegisterPage() {
       ...payload,
       createdAt: serverTimestamp(),
     });
-  }
+  }, [cleanEmail, cleanName, cleanPhone]);
 
   useEffect(() => {
     let alive = true;
@@ -92,7 +93,7 @@ export default function RegisterPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [createCustomerProfile, router]);
 
   async function handleRegister(event) {
     event.preventDefault();
@@ -165,18 +166,18 @@ export default function RegisterPage() {
         <div className="auth-card-glow" />
 
         <div className="auth-header">
-          <a className="auth-brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
+          <Link className="auth-brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
             <span className="auth-logo">AKC</span>
 
             <span className="auth-brand-text">
               <strong>AKC Oto Kılıf</strong>
               <small>Müşteri üyeliği</small>
             </span>
-          </a>
+          </Link>
 
-          <a className="auth-home-link" href="/login">
+          <Link className="auth-home-link" href="/login">
             Giriş yap
-          </a>
+          </Link>
         </div>
 
         <div className="auth-layout">
@@ -289,7 +290,7 @@ export default function RegisterPage() {
             </button>
 
             <div className="auth-actions-row">
-              <a href="/login">Zaten hesabım var</a>
+              <Link href="/login">Zaten hesabım var</Link>
               <a href="mailto:info@akcotokilif.com">Destek al</a>
             </div>
 

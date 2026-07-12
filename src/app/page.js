@@ -2,14 +2,18 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AuthNavMenu from "@/components/AuthNavMenu";
 import {
+  addDoc,
   collection,
   doc,
   limit,
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -24,48 +28,15 @@ const fallbackSettings = {
   address: "Adres bilgisi eklenecek",
   instagram: "",
   workingHours: "Hafta içi / Cumartesi",
+  brandLogoUrl: "",
+  showcaseImageUrl: "",
+  headerBannerText: "Profesyonel montaj, ölçülü kılıf, güçlü duruş.",
+  footerTitle: "AKC Oto Kılıf",
+  footerDescription: "Araç iç mekânında premium kalite, müşteri deneyiminde güven veren yaklaşım.",
+  footerCopy: "© 2026 AKC Oto Kılıf. Tüm hakları saklıdır.",
   heroImageUrl: "",
   googleMapsUrl: "",
 };
-
-const fallbackServices = [
-  {
-    title: "Araca Özel Oto Kılıf",
-    category: "Binek Araç",
-    material: "Deri görünümlü",
-    priceText: "Teklif alınız",
-    description:
-      "Araç marka, model, yıl ve koltuk yapısına göre hazırlanan; koltuğa net oturan, potluk yapmayan özel dikim kılıf çözümleri.",
-    icon: "✦",
-  },
-  {
-    title: "Profesyonel Montaj",
-    category: "Montaj",
-    material: "Kontrollü uygulama",
-    priceText: "Teklif alınız",
-    description:
-      "Koltuk formunu bozmadan, airbag ve emniyet detaylarına dikkat edilerek yapılan temiz, kontrollü ve özenli montaj.",
-    icon: "◆",
-  },
-  {
-    title: "Koltuk Döşeme Yenileme",
-    category: "Döşeme",
-    material: "Deri / Kumaş",
-    priceText: "Teklif alınız",
-    description:
-      "Yıpranmış, solmuş veya eskimiş koltuklar için deri, kumaş ve kombin malzeme seçenekleriyle yenileme hizmeti.",
-    icon: "◈",
-  },
-  {
-    title: "Ticari Araç Çözümleri",
-    category: "Filo",
-    material: "Dayanıklı kullanım",
-    priceText: "Teklif alınız",
-    description:
-      "Taksi, servis, filo ve hafif ticari araçlar için uzun ömürlü, kolay temizlenebilir ve yoğun kullanıma uygun çözümler.",
-    icon: "⬢",
-  },
-];
 
 const fallbackGallery = [
   { title: "Premium deri görünüm", tag: "Premium", imageUrl: "" },
@@ -183,8 +154,17 @@ function getProductPricing(product) {
 }
 export default function Home() {
   const [settings, setSettings] = useState(fallbackSettings);
-  const [products, setProducts] = useState([]);
+  const [, setProducts] = useState([]);
   const [galleryItems, setGalleryItems] = useState([]);
+  const [leadForm, setLeadForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    vehicle: "",
+    message: "",
+  });
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [leadFeedback, setLeadFeedback] = useState("");
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, "settings", "site"), (snapshot) => {
@@ -234,21 +214,47 @@ export default function Home() {
   const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
   const emailHref = `mailto:${settings.email || fallbackSettings.email}`;
 
-  const serviceItems = useMemo(
-    () => (products.length ? products : fallbackServices),
-    [products]
-  );
-
   const galleryData = useMemo(
     () => (galleryItems.length ? galleryItems : fallbackGallery),
     [galleryItems]
   );
 
+  async function handleLeadSubmit(event) {
+    event.preventDefault();
+
+    if (!leadForm.name || !leadForm.phone || !leadForm.message) {
+      setLeadFeedback("Ad soyad, telefon ve mesaj alanları zorunludur.");
+      return;
+    }
+
+    setLeadSubmitting(true);
+    setLeadFeedback("");
+
+    try {
+      await addDoc(collection(db, "leads"), {
+        ...leadForm,
+        status: "new",
+        createdAt: serverTimestamp(),
+      });
+
+      setLeadFeedback("Talebiniz alındı. En kısa sürede sizinle iletişime geçeceğiz.");
+      setLeadForm({ name: "", phone: "", email: "", vehicle: "", message: "" });
+    } catch (error) {
+      setLeadFeedback(error?.message || "Talep gönderilemedi. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setLeadSubmitting(false);
+    }
+  }
+
   return (
     <main className="site-shell">
       <nav className="navbar">
         <a className="brand" href="#top" aria-label="AKC Oto Kılıf Ana Sayfa">
-          <span className="brand-mark">AKC</span>
+          {settings.brandLogoUrl ? (
+            <img className="brand-logo" src={settings.brandLogoUrl} alt="AKC Oto Kılıf logo" />
+          ) : (
+            <span className="brand-mark">AKC</span>
+          )}
           <span>
             <strong>{settings.businessName || "AKC Oto Kılıf"}</strong>
             <small>Özel dikim • Döşeme • Profesyonel montaj</small>
@@ -256,19 +262,47 @@ export default function Home() {
         </a>
 
         <div className="nav-links" aria-label="Sayfa menüsü">
-          <a href="#hizmetler">Hizmetler</a>
-          <a href="#surec">Süreç</a>
-          <a href="#galeri">Galeri</a>
-          <a href="#kurumsal">Kurumsal</a>
-          <a href="#iletisim">İletişim</a>
-          <a href="/login">Giriş</a>
-          <a href="/register">Üye Ol</a>
+          <Link href="/urunler">Ürünler</Link>
+          <Link href="#surec">Süreç</Link>
+          <Link href="#galeri">Galeri</Link>
+          <Link href="#kurumsal">Kurumsal</Link>
+          <Link href="#iletisim">İletişim</Link>
         </div>
 
-        <a className="nav-cta" href={phoneHref}>
-          Hemen Ara
-        </a>
+        <div className="nav-actions">
+          <AuthNavMenu />
+          <a className="nav-cta" href={phoneHref}>
+            Hemen Ara
+          </a>
+        </div>
       </nav>
+
+      <section className="header-banner">
+        <div>
+          <strong>{settings.headerBannerText || fallbackSettings.headerBannerText}</strong>
+          <span>Hızlı teklif ve özel müşteri desteği ile araç içini yeniliyoruz.</span>
+        </div>
+
+        <div className="header-banner-actions">
+          <a href={whatsappHref} target="_blank" rel="noreferrer" className="primary-btn">
+            WhatsApp ile Teklif Al
+          </a>
+          <a href={phoneHref} className="secondary-btn">
+            Bizi Ara
+          </a>
+        </div>
+      </section>
+
+      {settings.showcaseImageUrl ? (
+        <section className="showcase-panel">
+          <img src={settings.showcaseImageUrl} alt="AKC Oto Kılıf vitrin görseli" />
+          <div>
+            <p className="eyebrow">Premium görsel alanı</p>
+            <h3>İşçilik, malzeme ve detayların birleştiği güçlü bir görünüm.</h3>
+            <p>Bu alan admin panelden yönetilebilir. Marka görseli, proje fotoğrafı veya ürün odaklı bir görsel yükleyebilirsiniz.</p>
+          </div>
+        </section>
+      ) : null}
 
       <section id="top" className="hero">
         <div className="hero-content">
@@ -293,13 +327,13 @@ export default function Home() {
               WhatsApp Teklif Al
             </a>
 
-            <a className="secondary-btn" href="#hizmetler">
-              Hizmetleri İncele
-            </a>
+            <Link className="secondary-btn" href="/urunler">
+              Ürünleri İncele
+            </Link>
 
-            <a className="secondary-btn" href="/register">
+            <Link className="secondary-btn" href="/register">
               Üye Ol
-            </a>
+            </Link>
           </div>
 
           <div className="hero-stats" aria-label="AKC öne çıkan özellikler">
@@ -353,61 +387,25 @@ export default function Home() {
       </section>
 
       <section id="hizmetler" className="section">
-        <div className="section-head">
-          <p className="eyebrow">Hizmetler</p>
-          <h2>Her araca aynı kılıf olmaz. İşin raconu uyumdur.</h2>
-          <p>
-            Koltuk formu, kullanım amacı, araç tipi ve müşteri beklentisi
-            farklıysa çözüm de farklı olmalı. AKC tarafında hedef; göze temiz
-            gelen, elde sağlam duran ve uzun süre formunu koruyan işçiliktir.
-          </p>
-        </div>
+        <div className="modern-cta-card">
+          <div className="modern-cta-copy">
+            <p className="eyebrow">Yeni ürün kataloğu</p>
+            <h2>Ürünler artık ayrı bir sayfada, daha modern ve daha hızlı erişilebilir.</h2>
+            <p>
+              Kılıf, döşeme ve premium detay seçeneklerini ayrı bir katalogda
+              keşfedin. Her ürüne ait fiyat bilgisi ve WhatsApp sipariş butonu ile
+              anında iletişime geçin.
+            </p>
+          </div>
 
-        <div className="service-grid">
-          {serviceItems.map((service, index) => (
-            <article
-              className={`service-card ${
-                service.imageUrl ? "service-card-with-image" : ""
-              }`}
-              key={service.id || service.title}
-            >
-              {service.imageUrl ? (
-                <div className="service-image">
-                  <img src={service.imageUrl} alt={service.title} />
-                </div>
-              ) : (
-                <span>{service.icon || String(index + 1).padStart(2, "0")}</span>
-              )}
-
-              <small className="service-meta">
-                {service.category || "AKC"} • {service.material || "Özel üretim"}
-              </small>
-
-              <h3>{service.title}</h3>
-
-              <p>{service.description || service.text}</p>
-
-           {(() => {
-  const price = getProductPricing(service);
-
-  return (
-    <div className="service-price-box">
-      <span className="price-label">
-       {price.hasRealPrice ? "Fiyat" : "Fiyat"}
-      </span>
-
-      <div className="price-line">
-        {price.oldText ? <del>{price.oldText}</del> : null}
-
-        <strong className="service-price">{price.finalText}</strong>
-      </div>
-
-      {price.note ? <small>{price.note}</small> : null}
-    </div>
-  );
-})()}
-            </article>
-          ))}
+          <div className="modern-cta-actions">
+            <Link className="primary-btn" href="/urunler">
+              Tüm Ürünleri Gör
+            </Link>
+            <a className="secondary-btn" href={whatsappHref} target="_blank" rel="noreferrer">
+              WhatsApp ile Teklif Al
+            </a>
+          </div>
         </div>
       </section>
 
@@ -494,17 +492,17 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-            <a className="primary-btn" href="/admin">
+            <Link className="primary-btn" href="/admin">
               Admin Panel
-            </a>
+            </Link>
 
-            <a className="secondary-btn" href="/login">
+            <Link className="secondary-btn" href="/login">
               Giriş Yap
-            </a>
+            </Link>
 
-            <a className="secondary-btn" href="/register">
+            <Link className="secondary-btn" href="/register">
               Üye Ol
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -578,28 +576,132 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="contact-card">
-          <a href={whatsappHref} target="_blank" rel="noreferrer">
-            WhatsApp: {phoneDisplay}
-          </a>
+        <div className="contact-card contact-card--stacked">
+          <form className="lead-form" onSubmit={handleLeadSubmit}>
+            <label>
+              <span>Ad Soyad</span>
+              <input
+                value={leadForm.name}
+                onChange={(event) =>
+                  setLeadForm((current) => ({ ...current, name: event.target.value }))
+                }
+                placeholder="Adınız Soyadınız"
+                required
+              />
+            </label>
 
-          <a href={phoneHref}>Telefon: {phoneDisplay}</a>
+            <label>
+              <span>Telefon</span>
+              <input
+                value={leadForm.phone}
+                onChange={(event) =>
+                  setLeadForm((current) => ({ ...current, phone: event.target.value }))
+                }
+                placeholder="05xx xxx xx xx"
+                required
+              />
+            </label>
 
-          <a href={emailHref}>{settings.email || fallbackSettings.email}</a>
+            <label>
+              <span>E-posta</span>
+              <input
+                value={leadForm.email}
+                onChange={(event) =>
+                  setLeadForm((current) => ({ ...current, email: event.target.value }))
+                }
+                type="email"
+                placeholder="ornek@mail.com"
+              />
+            </label>
 
-          <a href="/login">Giriş Yap</a>
+            <label>
+              <span>Araç</span>
+              <input
+                value={leadForm.vehicle}
+                onChange={(event) =>
+                  setLeadForm((current) => ({ ...current, vehicle: event.target.value }))
+                }
+                placeholder="Marka / model / yıl"
+              />
+            </label>
 
-          <p>
-            {settings.address || fallbackSettings.address}
-            <br />
-            {settings.workingHours || fallbackSettings.workingHours}
-          </p>
+            <label>
+              <span>Mesaj</span>
+              <textarea
+                value={leadForm.message}
+                onChange={(event) =>
+                  setLeadForm((current) => ({ ...current, message: event.target.value }))
+                }
+                placeholder="İstenen malzeme, renk, tarih veya detay"
+                rows={4}
+                required
+              />
+            </label>
+
+            <button className="primary-btn" type="submit" disabled={leadSubmitting}>
+              {leadSubmitting ? "Gönderiliyor..." : "Teklif İste"}
+            </button>
+
+            {leadFeedback ? <p className="lead-feedback">{leadFeedback}</p> : null}
+          </form>
+
+          <div className="contact-links">
+            <a href={whatsappHref} target="_blank" rel="noreferrer">
+              WhatsApp: {phoneDisplay}
+            </a>
+
+            <a href={phoneHref}>Telefon: {phoneDisplay}</a>
+
+            <a href={emailHref}>{settings.email || fallbackSettings.email}</a>
+
+            <Link href="/login">Giriş Yap</Link>
+
+            <p>
+              {settings.address || fallbackSettings.address}
+              <br />
+              {settings.workingHours || fallbackSettings.workingHours}
+            </p>
+          </div>
         </div>
       </section>
 
       <footer className="footer">
-        <strong>{settings.businessName || "AKC Oto Kılıf"}</strong>
-        <span>© 2026 • Aracınıza özel kılıf ve döşeme çözümleri</span>
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <strong>{settings.footerTitle || settings.businessName || "AKC Oto Kılıf"}</strong>
+            <p>{settings.footerDescription || fallbackSettings.footerDescription}</p>
+          </div>
+
+          <div className="footer-links">
+            <h4>Hızlı Bağlantılar</h4>
+            <Link href="/urunler">Ürünler</Link>
+            <Link href="/admin">Admin Panel</Link>
+            <Link href="/login">Giriş Yap</Link>
+            <Link href="/register">Üye Ol</Link>
+          </div>
+
+          <div className="footer-contact">
+            <h4>İletişim</h4>
+            <a href={phoneHref}>Telefon: {phoneDisplay}</a>
+            <a href={emailHref}>{settings.email || fallbackSettings.email}</a>
+            {settings.googleMapsUrl ? (
+              <a href={settings.googleMapsUrl} target="_blank" rel="noreferrer">
+                Haritaya bak
+              </a>
+            ) : null}
+            <p>{settings.address || fallbackSettings.address}</p>
+            <p>{settings.workingHours || fallbackSettings.workingHours}</p>
+            {settings.instagram ? (
+              <a href={settings.instagram} target="_blank" rel="noreferrer">
+                Instagram hesabı
+              </a>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <span>{settings.footerCopy || fallbackSettings.footerCopy}</span>
+        </div>
       </footer>
     </main>
   );

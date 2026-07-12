@@ -2275,6 +2275,43 @@
   object-fit: cover;
 }
 
+.media-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.media-upload-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+}
+
+.media-upload-copy h4 {
+  margin: 0 0 6px;
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+.media-upload-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.media-upload-help {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .homepage-editor .settings-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

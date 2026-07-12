@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -69,7 +70,9 @@ const defaultSettings = {
   heroHighlight: "AKC standardı.",
   heroSubtitle:
     "AKC Oto Kılıf; binek, SUV, hafif ticari, taksi, servis ve filo araçları için ölçülü, dayanıklı, şık ve profesyonel montajlı oto kılıf hizmeti sunar.",
+  brandLogoUrl: "",
   heroImageUrl: "",
+  showcaseImageUrl: "",
   qualityLabel: "Premium İç Mekân",
   qualityText: "Ölçülü dikim, net görünüm.",
 
@@ -102,6 +105,12 @@ const defaultSettings = {
   quoteTitle: "“Kılıf takıldı” değil, “araç yenilendi” dedirten işçilik.",
   quoteText:
     "Oto kılıfta farkı küçük detaylar belirler: dikiş çizgisi, köşe dönüşü, koltuğa oturuş, malzeme hissi ve montaj temizliği.",
+
+  headerBannerText: "Profesyonel montaj, ölçülü kılıf, güçlü duruş.",
+  footerTitle: "AKC Oto Kılıf",
+  footerDescription:
+    "Araç iç mekânında premium kalite, müşteri deneyiminde güven veren yaklaşım.",
+  footerCopy: "© 2026 AKC Oto Kılıf. Tüm hakları saklıdır.",
 
   faqEyebrow: "Sık sorulanlar",
   faqTitle: "Müşterinin aklındaki ilk sorulara net cevap.",
@@ -166,6 +175,8 @@ const settingsLabels = {
   heroTitle: "Hero ana başlık",
   heroHighlight: "Hero vurgu yazısı",
   heroSubtitle: "Hero açıklama",
+  brandLogoUrl: "Logo görsel URL",
+  showcaseImageUrl: "Vitrin görsel URL",
   qualityLabel: "Hero kart etiketi",
   qualityText: "Hero kart yazısı",
   servicesEyebrow: "Hizmetler küçük başlık",
@@ -192,6 +203,10 @@ const settingsLabels = {
   contactEyebrow: "İletişim küçük başlık",
   contactTitle: "İletişim başlık",
   contactText: "İletişim açıklama",
+  headerBannerText: "Üst başlık (header) metni",
+  footerTitle: "Footer başlık",
+  footerDescription: "Footer açıklama",
+  footerCopy: "Footer telif hakkı metni",
   phone: "Telefon",
   whatsapp: "WhatsApp numarası",
   email: "E-posta",
@@ -363,7 +378,9 @@ export default function AdminDashboard() {
 
   const [productFile, setProductFile] = useState(null);
   const [galleryFile, setGalleryFile] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
   const [heroFile, setHeroFile] = useState(null);
+  const [showcaseFile, setShowcaseFile] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
@@ -687,12 +704,18 @@ export default function AdminDashboard() {
     setSaving(true);
 
     try {
+      const uploadedLogoUrl = await uploadImageFile(logoFile, "site");
       const uploadedHeroUrl = await uploadImageFile(heroFile, "site");
+      const uploadedShowcaseUrl = await uploadImageFile(showcaseFile, "site");
+      const finalBrandLogoUrl = uploadedLogoUrl || settingsDraft.brandLogoUrl || "";
       const finalHeroImageUrl = uploadedHeroUrl || settingsDraft.heroImageUrl || "";
+      const finalShowcaseImageUrl = uploadedShowcaseUrl || settingsDraft.showcaseImageUrl || "";
 
       const payload = {
         ...settingsDraft,
+        brandLogoUrl: finalBrandLogoUrl,
         heroImageUrl: finalHeroImageUrl,
+        showcaseImageUrl: finalShowcaseImageUrl,
         vehicleGroups: textToArray(settingsDraft.vehicleGroupsText),
         advantages: textToArray(settingsDraft.advantagesText),
         processSteps: textToArray(settingsDraft.processStepsText),
@@ -707,7 +730,9 @@ export default function AdminDashboard() {
 
       await setDoc(doc(db, "settings", "site"), payload, { merge: true });
 
+      setLogoFile(null);
       setHeroFile(null);
+      setShowcaseFile(null);
       showToast("Ana sayfa ve site ayarları kaydedildi.");
     } catch (error) {
       showToast(error?.message || "Ayarlar kaydedilemedi.");
@@ -830,10 +855,10 @@ export default function AdminDashboard() {
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar">
-        <a className="admin-logo" href="/">
+        <Link className="admin-logo" href="/">
           <span>AKC</span>
           <strong>Admin Panel</strong>
-        </a>
+        </Link>
 
         <nav className="admin-tabs" aria-label="Admin menü">
           {tabs.map(([key, label, count]) => (
@@ -871,9 +896,9 @@ export default function AdminDashboard() {
             <button className="admin-secondary-btn" type="button" onClick={seedDemoContent}>
               Örnek içerik ekle
             </button>
-            <a className="admin-primary-btn" href="/" target="_blank">
+            <Link className="admin-primary-btn" href="/" target="_blank">
               Siteyi görüntüle
-            </a>
+            </Link>
           </div>
         </header>
 
@@ -982,31 +1007,112 @@ export default function AdminDashboard() {
                     </label>
                   ))}
 
-                  <label>
-                    Hero görsel URL
-                    <input
-                      value={settingsDraft.heroImageUrl || ""}
-                      onChange={(event) =>
-                        setSettingsDraft({ ...settingsDraft, heroImageUrl: event.target.value })
-                      }
-                      placeholder="https://..."
-                    />
-                  </label>
+                  <div className="media-upload-grid">
+                    <article className="media-upload-card">
+                      <div className="media-upload-copy">
+                        <h4>Logo görseli</h4>
+                        <p>Üst menüde görünecek logo.</p>
+                      </div>
 
-                  <label className="file-input">
-                    <span>Hero görsel yükle</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => setHeroFile(event.target.files?.[0] || null)}
-                    />
-                    <em>{heroFile?.name || "Dosya seçilmedi"}</em>
-                  </label>
+                      <label>
+                        Logo görsel URL
+                        <input
+                          value={settingsDraft.brandLogoUrl || ""}
+                          onChange={(event) =>
+                            setSettingsDraft({ ...settingsDraft, brandLogoUrl: event.target.value })
+                          }
+                          placeholder="https://..."
+                        />
+                      </label>
+
+                      <label className="file-input">
+                        <span>Logo görsel seç</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => setLogoFile(event.target.files?.[0] || null)}
+                        />
+                        <em>{logoFile?.name || "Logo için dosya seç"}</em>
+                      </label>
+                    </article>
+
+                    <article className="media-upload-card">
+                      <div className="media-upload-copy">
+                        <h4>Hero görseli</h4>
+                        <p>Ana sayfa hero alanında görünecek görsel.</p>
+                      </div>
+
+                      <label>
+                        Hero görsel URL
+                        <input
+                          value={settingsDraft.heroImageUrl || ""}
+                          onChange={(event) =>
+                            setSettingsDraft({ ...settingsDraft, heroImageUrl: event.target.value })
+                          }
+                          placeholder="https://..."
+                        />
+                      </label>
+
+                      <label className="file-input">
+                        <span>Hero görsel seç</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => setHeroFile(event.target.files?.[0] || null)}
+                        />
+                        <em>{heroFile?.name || "Hero görseli seç"}</em>
+                      </label>
+                    </article>
+
+                    <article className="media-upload-card">
+                      <div className="media-upload-copy">
+                        <h4>Vitrin / ek görsel</h4>
+                        <p>Ana sayfada ekstra premium görsel alanı.</p>
+                      </div>
+
+                      <label>
+                        Vitrin / ek görsel URL
+                        <input
+                          value={settingsDraft.showcaseImageUrl || ""}
+                          onChange={(event) =>
+                            setSettingsDraft({ ...settingsDraft, showcaseImageUrl: event.target.value })
+                          }
+                          placeholder="https://..."
+                        />
+                      </label>
+
+                      <label className="file-input">
+                        <span>Vitrin görsel seç</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => setShowcaseFile(event.target.files?.[0] || null)}
+                        />
+                        <em>{showcaseFile?.name || "Vitrin görseli seç"}</em>
+                      </label>
+                    </article>
+                  </div>
+
+                  <p className="media-upload-help">
+                    Görsel seçtikten sonra aşağıdaki “Ana sayfayı kaydet” butonuna basarak yükleme işlemini tamamlayın.
+                  </p>
                 </div>
+
+                {settingsDraft.brandLogoUrl ? (
+                  <div className="preview-frame">
+                    <img src={settingsDraft.brandLogoUrl} alt="Logo önizleme" />
+                  </div>
+                ) : null}
 
                 {settingsDraft.heroImageUrl ? (
                   <div className="preview-frame">
                     <img src={settingsDraft.heroImageUrl} alt="Hero görsel önizleme" />
+                  </div>
+                ) : null}
+
+                {settingsDraft.showcaseImageUrl ? (
+                  <div className="preview-frame">
+                    <img src={settingsDraft.showcaseImageUrl} alt="Vitrin görsel önizleme" />
                   </div>
                 ) : null}
               </div>
@@ -1147,6 +1253,38 @@ export default function AdminDashboard() {
                       </label>
                     )
                   )}
+                </div>
+              </div>
+
+              <div className="settings-block">
+                <h3>Header ve Footer</h3>
+
+                <div className="settings-form">
+                  {[
+                    "headerBannerText",
+                    "footerTitle",
+                    "footerDescription",
+                    "footerCopy",
+                  ].map((key) => (
+                    <label key={key}>
+                      {settingsLabels[key]}
+                      {key === "footerDescription" ? (
+                        <textarea
+                          value={settingsDraft[key] || ""}
+                          onChange={(event) =>
+                            setSettingsDraft({ ...settingsDraft, [key]: event.target.value })
+                          }
+                        />
+                      ) : (
+                        <input
+                          value={settingsDraft[key] || ""}
+                          onChange={(event) =>
+                            setSettingsDraft({ ...settingsDraft, [key]: event.target.value })
+                          }
+                        />
+                      )}
+                    </label>
+                  ))}
                 </div>
               </div>
 
