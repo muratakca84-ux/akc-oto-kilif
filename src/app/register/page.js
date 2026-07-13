@@ -98,6 +98,8 @@ export default function RegisterPage() {
   async function handleRegister(event) {
     event.preventDefault();
 
+    if (busy) return;
+
     if (!cleanName || !cleanEmail || !password) {
       setMessage("Ad soyad, e-posta ve şifre alanları zorunludur.");
       return;
@@ -145,6 +147,8 @@ export default function RegisterPage() {
   }
 
   async function handleGoogleRegister() {
+    if (busy) return;
+
     setBusy(true);
     setMessage("Google üyelik sayfasına yönlendiriliyorsunuz...");
 
@@ -195,6 +199,12 @@ export default function RegisterPage() {
               yalnızca işletme tarafından verilir.
             </p>
 
+            <div className="auth-highlight-row" aria-label="Öne çıkan avantajlar">
+              <span className="auth-highlight-pill">✨ Kolay üyelik</span>
+              <span className="auth-highlight-pill">📱 Mobil uyumlu</span>
+              <span className="auth-highlight-pill">🛡️ Güvenli profil</span>
+            </div>
+
             <div className="auth-benefits">
               <p>✓ Müşteri profili oluşturma</p>
               <p>✓ Teklif ve iletişim süreçleri için hazır altyapı</p>
@@ -203,6 +213,11 @@ export default function RegisterPage() {
           </div>
 
           <div className="auth-form-card">
+            <div className="auth-form-intro">
+              <strong>Yeni müşteri hesabı</strong>
+              <span>İşlem sürecine hazır bir profil oluşturun.</span>
+            </div>
+
             <form className="auth-form" onSubmit={handleRegister}>
               <label>
                 <span>Ad Soyad</span>

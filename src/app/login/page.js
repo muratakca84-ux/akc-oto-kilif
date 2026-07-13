@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   browserSessionPersistence,
@@ -25,13 +25,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [busy, setBusy] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState(
     "Hesabınıza giriş yapın. Admin yetkiniz varsa yönetim paneline yönlendirilirsiniz."
   );
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-
+const routedRef = useRef(false);
   const getAdminStatus = useCallback(async (user) => {
     if (!user?.uid) return false;
 
@@ -74,7 +74,11 @@ export default function LoginPage() {
     });
   }, []);
 
-  const routeAfterLogin = useCallback(async (user, provider = "email") => {
+const routeAfterLogin = useCallback(
+  async (user, provider = "email") => {
+    if (routedRef.current) return;
+    routedRef.current = true;
+
     const isAdmin = await getAdminStatus(user);
 
     if (isAdmin) {
@@ -84,9 +88,11 @@ export default function LoginPage() {
     }
 
     await ensureCustomerProfile(user, provider);
-    setMessage("Giriş başarılı. Ana sayfaya yönlendiriliyorsunuz...");
+    setMessage("Giriş başarılı. Profil sayfanıza yönlendiriliyorsunuz...");
     router.replace(CUSTOMER_AFTER_LOGIN);
-  }, [ensureCustomerProfile, router]);
+  },
+  [ensureCustomerProfile, getAdminStatus, router]
+);
 
   useEffect(() => {
     let alive = true;
@@ -104,6 +110,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         if (!alive) return;
+        routedRef.current = false;
         setMessage(error?.message || "Google giriş dönüşü kontrol edilemedi.");
       } finally {
         if (alive) {
@@ -120,30 +127,35 @@ export default function LoginPage() {
     };
   }, [routeAfterLogin]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setChecking(true);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (routedRef.current) return;
 
-      try {
-        if (!user) {
-          setChecking(false);
-          return;
-        }
+    setChecking(true);
 
-        setMessage("Mevcut oturum bulundu. Yetki kontrol ediliyor...");
-        await routeAfterLogin(user, "session");
-      } catch (error) {
-        setMessage(error?.message || "Oturum kontrolü yapılamadı.");
-      } finally {
+    try {
+      if (!user) {
         setChecking(false);
+        return;
       }
-    });
 
-    return () => unsubscribe();
-  }, [routeAfterLogin]);
+      setMessage("Mevcut oturum bulundu. Yetki kontrol ediliyor...");
+      await routeAfterLogin(user, "session");
+    } catch (error) {
+      routedRef.current = false;
+      setMessage(error?.message || "Oturum kontrolü yapılamadı.");
+    } finally {
+      setChecking(false);
+    }
+  });
+
+  return () => unsubscribe();
+}, [routeAfterLogin]);
 
   async function handleEmailLogin(event) {
     event.preventDefault();
+
+    if (busy || checking) return;
 
     if (!cleanEmail || !password) {
       setMessage("E-posta ve şifre alanlarını doldurun.");
@@ -164,6 +176,7 @@ export default function LoginPage() {
 
       await routeAfterLogin(result.user, "email");
     } catch (error) {
+      routedRef.current = false;
       setMessage(
         error?.code === "auth/invalid-credential"
           ? "E-posta veya şifre hatalı. Bilgileri kontrol edin."
@@ -175,21 +188,39 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
-    setBusy(true);
-    setMessage("Google giriş sayfasına yönlendiriliyorsunuz...");
+    if (busy || checking) return;
 
-    try {
-      await setPersistence(auth, browserSessionPersistence);
-      await signInWithRedirect(auth, googleProvider);
-    } catch (error) {
-      setMessage(error?.message || "Google ile giriş başlatılamadı.");
-      setBusy(false);
-    }
+    // Defer redirect slightly to reduce chance of DOM commit collisions
+    setTimeout(async () => {
+      setBusy(true);
+      setMessage("Google giriş sayfasına yönlendiriliyorsunuz...");
+
+      try {
+        await setPersistence(auth, browserSessionPersistence);
+        await signInWithRedirect(auth, googleProvider);
+      } catch (error) {
+        routedRef.current = false;
+        setMessage(error?.message || "Google ile giriş başlatılamadı.");
+        setBusy(false);
+      }
+    }, 50);
   }
 
   async function handleLogout() {
-    await signOut(auth);
-    setMessage("Oturum kapatıldı.");
+    if (busy || checking) return;
+
+    setBusy(true);
+    setMessage("Oturum kapatılıyor...");
+
+    try {
+      await signOut(auth);
+      setMessage("Oturum kapatıldı.");
+    } catch (error) {
+      routedRef.current = false;
+      setMessage(error?.message || "Oturum kapatılamadı.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const isDisabled = busy || checking;
@@ -232,6 +263,12 @@ export default function LoginPage() {
               yönlendirilir.
             </p>
 
+            <div className="auth-highlight-row" aria-label="Öne çıkan avantajlar">
+              <span className="auth-highlight-pill">⚡ Hızlı erişim</span>
+              <span className="auth-highlight-pill">🔐 Güvenli giriş</span>
+              <span className="auth-highlight-pill">🧭 Otomatik yönlendirme</span>
+            </div>
+
             <div className="auth-benefits">
               <p>✓ Müşteri hesabı ile hızlı teklif süreci</p>
               <p>✓ Admin yetkisi varsa otomatik panel yönlendirmesi</p>
@@ -240,6 +277,11 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-form-card">
+            <div className="auth-form-intro">
+              <strong>Hesap erişimi</strong>
+              <span>E-posta veya Google ile anında devam edin.</span>
+            </div>
+
             <form className="auth-form" onSubmit={handleEmailLogin}>
               <label>
                 <span>E-posta</span>

@@ -29,6 +29,11 @@
   --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.26);
   --shadow-strong: 0 44px 120px rgba(0, 0, 0, 0.52);
 
+  --accent: var(--gold);
+  --accent-soft: var(--gold-soft);
+  --surface: var(--black-2);
+  --button-text: #171006;
+
   --radius-xl: 42px;
   --radius-lg: 30px;
   --radius-md: 22px;
@@ -50,11 +55,12 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--foreground);
-  background:
-    radial-gradient(circle at 12% 0%, rgba(214, 165, 75, 0.24), transparent 34rem),
-    radial-gradient(circle at 88% 14%, rgba(23, 57, 47, 0.58), transparent 34rem),
-    radial-gradient(circle at 50% 100%, rgba(214, 165, 75, 0.1), transparent 30rem),
-    linear-gradient(135deg, #050505 0%, #0f0c08 48%, #060606 100%);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 34rem),
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--accent-soft) 58%, transparent), transparent 34rem),
+    radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30rem),
+    linear-gradient(135deg, var(--background) 0%, var(--surface) 48%, var(--background) 100%);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
@@ -66,8 +72,8 @@ body::before {
   pointer-events: none;
   z-index: -1;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
   background-size: 58px 58px;
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent 78%);
 }
@@ -2327,4 +2333,1806 @@ summary:focus-visible {
   font-size: 11px;
   font-weight: 800;
   line-height: 1.35;
+}
+/* =========================================
+   PROFILE ADMIN AREA - HARD FINAL OVERRIDE
+========================================= */
+
+.profile-admin-panel {
+  display: block !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 26px 0 !important;
+  padding: 34px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 34px !important;
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 24rem),
+    radial-gradient(circle at 100% 80%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 26rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.profile-admin-panel::after {
+  content: "AKC";
+  position: absolute;
+  right: 26px;
+  bottom: -34px;
+  color: rgba(255, 255, 255, 0.045);
+  font-size: clamp(90px, 14vw, 190px);
+  font-weight: 1000;
+  letter-spacing: -0.12em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.profile-admin-panel .section-head {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 860px !important;
+  margin-bottom: 28px !important;
+}
+
+.profile-admin-panel .section-head h2 {
+  margin-bottom: 16px !important;
+  font-size: clamp(42px, 6vw, 82px) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.08em !important;
+}
+
+.profile-admin-panel .section-head p {
+  color: var(--muted) !important;
+  font-size: 17px !important;
+  line-height: 1.75 !important;
+}
+
+.profile-admin-grid {
+  position: relative !important;
+  z-index: 3 !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.profile-admin-grid > a,
+.profile-admin-card {
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  min-height: 230px !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.11) !important;
+  border-radius: 28px !important;
+  color: var(--foreground) !important;
+  text-decoration: none !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.115), rgba(255, 255, 255, 0.035)) !important;
+  box-shadow:
+    0 22px 62px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease !important;
+}
+
+.profile-admin-grid > a::before,
+.profile-admin-card::before {
+  content: "";
+  position: absolute;
+  right: -46px;
+  bottom: -46px;
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 20%, transparent);
+  filter: blur(24px);
+  transition: transform 0.25s ease;
+}
+
+.profile-admin-grid > a:hover,
+.profile-admin-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: var(--line-strong) !important;
+  box-shadow:
+    0 30px 84px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+.profile-admin-grid > a:hover::before,
+.profile-admin-card:hover::before {
+  transform: scale(1.22);
+}
+
+.profile-admin-grid > a span,
+.profile-admin-card span {
+  position: relative !important;
+  z-index: 2 !important;
+  display: grid !important;
+  width: 50px !important;
+  height: 50px !important;
+  place-items: center !important;
+  border: 1px solid rgba(240, 210, 138, 0.24) !important;
+  border-radius: 18px !important;
+  color: var(--gold-soft) !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.08em !important;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), transparent 28%),
+    rgba(214, 165, 75, 0.12) !important;
+}
+
+.profile-admin-grid > a strong,
+.profile-admin-card strong {
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  margin: auto 0 0 !important;
+  color: var(--foreground) !important;
+  font-size: 23px !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.profile-admin-grid > a p,
+.profile-admin-card p {
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+}
+
+/* Profil ana kartlarını da toparla */
+.profile-hero-card,
+.profile-card,
+.profile-loading-card {
+  backdrop-filter: blur(18px) !important;
+}
+
+.profile-hero-card--main {
+  min-height: 250px !important;
+}
+
+.profile-hero-card--actions {
+  min-height: 250px !important;
+}
+
+.profile-avatar {
+  overflow: hidden !important;
+  flex: 0 0 auto !important;
+}
+
+.profile-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.profile-avatar span {
+  display: grid !important;
+  width: 100% !important;
+  height: 100% !important;
+  place-items: center !important;
+}
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .profile-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .profile-admin-panel {
+    padding: 24px !important;
+    border-radius: 28px !important;
+  }
+
+  .profile-admin-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profile-admin-grid > a,
+  .profile-admin-card {
+    min-height: 180px !important;
+  }
+
+  .profile-admin-panel .section-head h2 {
+    font-size: clamp(38px, 12vw, 54px) !important;
+  }
+}
+/* ================================
+   HOME PAGE ULTRA FINAL FIX
+================================ */
+
+.brand-logo-frame {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 16px 40px rgba(0, 0, 0, 0.26);
+}
+
+.brand-logo-frame .brand-logo,
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  padding: 7px;
+  object-fit: contain !important;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-premium-banner {
+  display: grid;
+  grid-template-columns: 1.1fr auto;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent-soft) 18%, transparent), transparent 22rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.035));
+  box-shadow: var(--shadow-soft);
+}
+
+.home-premium-banner span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--gold-soft);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.home-premium-banner strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.home-premium-banner p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.hero-premium {
+  min-height: 760px;
+}
+
+.hero-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.hero-trust-row span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(240, 210, 138, 0.18);
+  border-radius: 999px;
+  color: var(--gold-soft);
+  font-size: 13px;
+  font-weight: 850;
+  background: rgba(214, 165, 75, 0.1);
+}
+
+.hero-card-photo {
+  display: block;
+}
+
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-card-photo::before {
+  z-index: 2;
+}
+
+.hero-card-photo::after {
+  z-index: 3;
+}
+
+.hero-card-photo .card-glow {
+  z-index: 2;
+}
+
+.hero-card-photo .quality-card {
+  z-index: 4;
+}
+
+.hero-card-photo .hero-photo + .quality-card {
+  backdrop-filter: blur(20px);
+}
+
+.showcase-panel-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.showcase-panel-premium::after {
+  content: "AKC";
+  position: absolute;
+  right: 20px;
+  bottom: -20px;
+  color: rgba(255, 255, 255, 0.045);
+  font-size: 110px;
+  font-weight: 1000;
+  letter-spacing: -0.12em;
+  pointer-events: none;
+}
+
+.modern-cta-card-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-cta-card-premium::after {
+  content: "";
+  position: absolute;
+  right: -90px;
+  bottom: -90px;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 18%, transparent);
+  filter: blur(36px);
+}
+
+.quote-section-premium {
+  margin-top: 28px;
+}
+
+.gallery-card-image {
+  padding: 0;
+}
+
+.gallery-card-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  object-fit: cover;
+}
+
+.gallery-card-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.74)),
+    radial-gradient(circle at 20% 0%, rgba(240, 210, 138, 0.18), transparent 42%);
+}
+
+.gallery-card-image .gallery-card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 236px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.gallery-card-content {
+  position: relative;
+  z-index: 2;
+}
+
+.contact-card--stacked .lead-form {
+  padding: 4px;
+}
+
+.lead-form input,
+.lead-form textarea {
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.lead-form input:focus,
+.lead-form textarea:focus {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 0 0 4px rgba(240, 210, 138, 0.08);
+}
+
+.footer-brand strong {
+  display: block;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 920px) {
+  .home-premium-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .home-premium-banner .header-banner-actions {
+    justify-content: flex-start;
+  }
+
+  .hero-premium {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .brand-logo-frame {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .brand-logo-frame .brand-logo,
+  .brand-logo {
+    padding: 6px;
+  }
+
+  .hero-trust-row {
+    display: grid;
+  }
+
+  .hero-trust-row span {
+    justify-content: center;
+  }
+}
+/* ================================
+   TOP BLACK GAP FINAL FIX
+================================ */
+
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: var(--background) !important;
+}
+
+body {
+  min-height: 100dvh !important;
+}
+
+/* Sayfa en üstten başlasın */
+.site-shell {
+  padding-top: 0 !important;
+}
+
+/* Navbar üstte boşluk bırakmasın */
+.navbar {
+  top: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 44px !important;
+}
+
+/* Yapışkan navbar en üstte daha premium dursun */
+.navbar {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* Üstteki grid çizgisi çok görünüyorsa yumuşat */
+body::before {
+  top: 0 !important;
+  opacity: 0.55 !important;
+}
+
+/* Navbar sayfa kenarına sıfıra yakın otursun ama bozulmasın */
+@media (min-width: 921px) {
+  .navbar {
+    margin-top: 0 !important;
+  }
+}
+
+/* Mobilde de üst boşluk olmasın */
+@media (max-width: 920px) {
+  .navbar {
+    top: 0 !important;
+    margin-top: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+}
+/* ================================
+   TOP AREA REAL FINAL FIX
+================================ */
+
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: var(--background) !important;
+}
+
+body {
+  min-height: 100dvh !important;
+  background-image:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 34rem),
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--accent-soft) 46%, transparent), transparent 34rem),
+    radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30rem),
+    linear-gradient(135deg, var(--background) 0%, var(--surface) 48%, var(--background) 100%) !important;
+}
+
+/* Sayfa üstten başlasın ama navbar kesilmesin */
+.site-shell {
+  padding-top: 14px !important;
+}
+
+/* Navbar kesilmeden premium dursun */
+.navbar {
+  top: 14px !important;
+  margin-top: 0 !important;
+  margin-bottom: 44px !important;
+  border-radius: 999px !important;
+}
+
+/* Üstteki grid çizgisi yumuşak kalsın */
+body::before {
+  top: 0 !important;
+  opacity: 0.5 !important;
+}
+
+/* Mobil */
+@media (max-width: 920px) {
+  .site-shell {
+    padding-top: 10px !important;
+  }
+
+  .navbar {
+    top: 10px !important;
+    margin-top: 0 !important;
+    border-radius: 30px !important;
+  }
+}
+/* ================================
+
+   PRODUCTS PAGE FINAL
+
+================================ */
+
+.products-page-shell {
+
+  padding-bottom: 90px;
+
+}
+
+.products-hero {
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+
+  gap: 28px;
+
+  align-items: stretch;
+
+  padding: 34px 0 52px;
+
+}
+
+.products-hero-copy {
+
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 42px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 42px;
+
+  background:
+
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent-soft) 22%, transparent), transparent 26rem),
+
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+
+  box-shadow: var(--shadow-soft);
+
+}
+
+.products-hero-copy::after {
+
+  content: "AKC";
+
+  position: absolute;
+
+  right: 24px;
+
+  bottom: -30px;
+
+  color: rgba(255, 255, 255, 0.045);
+
+  font-size: clamp(90px, 14vw, 180px);
+
+  font-weight: 1000;
+
+  letter-spacing: -0.12em;
+
+  pointer-events: none;
+
+}
+
+.products-hero-copy h1 {
+
+  position: relative;
+
+  z-index: 2;
+
+  max-width: 760px;
+
+  margin-bottom: 20px;
+
+  font-size: clamp(42px, 6vw, 84px);
+
+  line-height: 0.9;
+
+  letter-spacing: -0.08em;
+
+}
+
+.products-hero-copy h1 span {
+
+  display: block;
+
+  color: var(--gold-soft);
+
+}
+
+.products-hero-copy p {
+
+  position: relative;
+
+  z-index: 2;
+
+  max-width: 680px;
+
+  color: var(--muted);
+
+  font-size: 17px;
+
+  line-height: 1.75;
+
+}
+
+.products-trust-row {
+
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin-top: 28px;
+
+}
+
+.products-trust-row span {
+
+  display: inline-flex;
+
+  min-height: 38px;
+
+  align-items: center;
+
+  padding: 0 14px;
+
+  border: 1px solid rgba(240, 210, 138, 0.18);
+
+  border-radius: 999px;
+
+  color: var(--gold-soft);
+
+  font-size: 13px;
+
+  font-weight: 850;
+
+  background: rgba(214, 165, 75, 0.1);
+
+}
+
+.products-hero-panel {
+
+  display: grid;
+
+  gap: 16px;
+
+}
+
+.products-hero-card {
+
+  padding: 30px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 34px;
+
+  background:
+
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 20rem),
+
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+
+  box-shadow: var(--shadow-soft);
+
+}
+
+.products-hero-card span {
+
+  display: inline-flex;
+
+  margin-bottom: 14px;
+
+  padding: 8px 11px;
+
+  border-radius: 999px;
+
+  color: var(--gold-soft);
+
+  font-size: 11px;
+
+  font-weight: 950;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+
+  background: rgba(214, 165, 75, 0.12);
+
+}
+
+.products-hero-card strong {
+
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: var(--foreground);
+
+  font-size: 28px;
+
+  line-height: 1.08;
+
+  letter-spacing: -0.05em;
+
+}
+
+.products-hero-card p {
+
+  margin: 0;
+
+  color: var(--muted);
+
+  line-height: 1.75;
+
+}
+
+.products-mini-grid {
+
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  gap: 12px;
+
+}
+
+.products-mini-grid article {
+
+  padding: 20px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 24px;
+
+  background: rgba(255, 255, 255, 0.052);
+
+}
+
+.products-mini-grid small {
+
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--gold-soft);
+
+  font-weight: 950;
+
+  letter-spacing: 0.14em;
+
+}
+
+.products-mini-grid strong {
+
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-size: 18px;
+
+}
+
+.products-mini-grid p {
+
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+}
+
+.products-catalog-section {
+
+  padding: 44px 0 76px;
+
+}
+
+.products-bottom-cta {
+
+  display: grid;
+
+  grid-template-columns: 1.1fr auto;
+
+  gap: 24px;
+
+  align-items: center;
+
+  padding: 42px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 38px;
+
+  background:
+
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 24rem),
+
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+
+  box-shadow: var(--shadow-soft);
+
+}
+
+.products-bottom-cta h2 {
+
+  margin-bottom: 12px;
+
+  font-size: clamp(32px, 4vw, 54px);
+
+  line-height: 0.96;
+
+  letter-spacing: -0.065em;
+
+}
+
+.products-bottom-cta p {
+
+  margin: 0;
+
+  color: var(--muted);
+
+  line-height: 1.75;
+
+}
+
+.products-bottom-actions {
+
+  display: grid;
+
+  gap: 12px;
+
+  min-width: 260px;
+
+}
+/* =========================================
+   URUNLER PAGE - ULTRA FINAL CSS FIX
+   globals.css EN ALTINA EKLE
+========================================= */
+
+.products-page-shell {
+  position: relative !important;
+  padding-top: 0 !important;
+  padding-bottom: 90px !important;
+}
+
+/* Ürünler hero alanı */
+.products-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr) !important;
+  gap: 26px !important;
+  align-items: stretch !important;
+  padding: 46px 0 58px !important;
+}
+
+.products-hero-copy {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 44px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 42px !important;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent-soft) 24%, transparent), transparent 28rem),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.products-hero-copy::after {
+  content: "AKC" !important;
+  position: absolute !important;
+  right: 24px !important;
+  bottom: -32px !important;
+  color: rgba(255, 255, 255, 0.045) !important;
+  font-size: clamp(100px, 14vw, 190px) !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.12em !important;
+  pointer-events: none !important;
+}
+
+.products-hero-copy .eyebrow {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.products-hero-copy h1 {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 760px !important;
+  margin: 0 0 22px !important;
+  color: var(--foreground) !important;
+  font-size: clamp(46px, 6.4vw, 92px) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.085em !important;
+}
+
+.products-hero-copy h1 span {
+  display: block !important;
+  margin-top: 8px !important;
+  color: var(--gold-soft) !important;
+  text-shadow: 0 20px 80px rgba(214, 165, 75, 0.25) !important;
+}
+
+.products-hero-copy > p {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: 680px !important;
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 17px !important;
+  line-height: 1.75 !important;
+}
+
+.products-hero-copy .hero-actions {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-top: 34px !important;
+}
+
+/* Hero küçük güven rozetleri */
+.products-trust-row {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin-top: 28px !important;
+}
+
+.products-trust-row span {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  padding: 0 15px !important;
+  border: 1px solid rgba(240, 210, 138, 0.2) !important;
+  border-radius: 999px !important;
+  color: var(--gold-soft) !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  background: rgba(214, 165, 75, 0.11) !important;
+}
+
+/* Sağ hero panel */
+.products-hero-panel {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.products-hero-card {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 32px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 36px !important;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-soft) 23%, transparent), transparent 22rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.products-hero-card span {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-bottom: 14px !important;
+  padding: 8px 12px !important;
+  border: 1px solid rgba(240, 210, 138, 0.2) !important;
+  border-radius: 999px !important;
+  color: var(--gold-soft) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  background: rgba(214, 165, 75, 0.12) !important;
+}
+
+.products-hero-card strong {
+  display: block !important;
+  margin-bottom: 12px !important;
+  color: var(--foreground) !important;
+  font-size: 30px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.products-hero-card p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 15px !important;
+  line-height: 1.75 !important;
+}
+
+.products-mini-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+}
+
+.products-mini-grid article {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 20px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(240, 210, 138, 0.12), transparent 38%),
+    rgba(255, 255, 255, 0.052) !important;
+}
+
+.products-mini-grid small {
+  display: block !important;
+  margin-bottom: 8px !important;
+  color: var(--gold-soft) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.14em !important;
+}
+
+.products-mini-grid strong {
+  display: block !important;
+  margin-bottom: 7px !important;
+  color: var(--foreground) !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+}
+
+.products-mini-grid p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+/* Katalog başlığı */
+.products-catalog-section {
+  padding: 54px 0 78px !important;
+}
+
+.products-catalog-section .section-head {
+  max-width: 980px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: 42px !important;
+  text-align: center !important;
+}
+
+.products-catalog-section .section-head h2 {
+  margin-bottom: 18px !important;
+  font-size: clamp(40px, 5.4vw, 76px) !important;
+  line-height: 0.92 !important;
+  letter-spacing: -0.08em !important;
+}
+
+.products-catalog-section .section-head p {
+  max-width: 760px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  color: var(--muted) !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+}
+
+/* Ürün grid alanı */
+.products-panel {
+  padding-top: 0 !important;
+}
+
+.product-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+}
+
+/* Tek ürün varsa sola sıkışmasın */
+.product-grid:has(.product-card:only-child) {
+  grid-template-columns: minmax(300px, 420px) !important;
+  justify-content: center !important;
+}
+
+/* Ürün kartı premium */
+.product-card {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 32px !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(240, 210, 138, 0.12), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.032)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.product-card__image {
+  min-height: 280px !important;
+  height: 280px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(240, 210, 138, 0.18), transparent 40%),
+    rgba(255, 255, 255, 0.045) !important;
+}
+
+.product-card__image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.product-card__body {
+  padding: 26px !important;
+}
+
+.product-badge {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-bottom: 4px !important;
+  padding: 8px 12px !important;
+  border: 1px solid rgba(240, 210, 138, 0.22) !important;
+  border-radius: 999px !important;
+  color: var(--gold-soft) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  background: rgba(214, 165, 75, 0.12) !important;
+}
+
+.product-card h3 {
+  margin: 10px 0 10px !important;
+  color: var(--foreground) !important;
+  font-size: 28px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.product-card p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+
+.product-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-top: 16px !important;
+}
+
+.product-meta span {
+  display: inline-flex !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+}
+
+.product-price-box {
+  display: grid !important;
+  gap: 6px !important;
+  margin-top: 18px !important;
+  padding: 16px 18px !important;
+  border: 1px solid rgba(240, 210, 138, 0.28) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 230, 170, 0.16), transparent 44%),
+    linear-gradient(135deg, rgba(240, 210, 138, 0.14), rgba(255, 255, 255, 0.035)) !important;
+}
+
+.product-price-label {
+  color: var(--gold-soft) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.product-price {
+  color: #ffe29a !important;
+  font-size: 26px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.product-price-box small {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.order-btn {
+  width: 100% !important;
+  min-height: 52px !important;
+  margin-top: 16px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: #171006 !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.7), transparent 28%),
+    linear-gradient(135deg, var(--gold-soft), var(--gold)) !important;
+  box-shadow: 0 18px 42px rgba(214, 165, 75, 0.24) !important;
+}
+
+/* Alt CTA */
+.products-bottom-cta {
+  display: grid !important;
+  grid-template-columns: 1.1fr auto !important;
+  gap: 24px !important;
+  align-items: center !important;
+  margin-top: 24px !important;
+  padding: 42px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 38px !important;
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 24rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.products-bottom-cta h2 {
+  margin-bottom: 12px !important;
+  color: var(--foreground) !important;
+  font-size: clamp(32px, 4vw, 54px) !important;
+  line-height: 0.96 !important;
+  letter-spacing: -0.065em !important;
+}
+
+.products-bottom-cta p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  line-height: 1.75 !important;
+}
+
+.products-bottom-actions {
+  display: grid !important;
+  gap: 12px !important;
+  min-width: 270px !important;
+}
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .products-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .products-hero-copy,
+  .products-hero-card,
+  .products-bottom-cta {
+    padding: 28px !important;
+    border-radius: 32px !important;
+  }
+
+  .products-hero-copy h1 {
+    font-size: clamp(42px, 12vw, 62px) !important;
+  }
+
+  .product-grid,
+  .product-grid:has(.product-card:only-child),
+  .products-bottom-cta {
+    grid-template-columns: 1fr !important;
+  }
+
+  .products-bottom-actions {
+    min-width: 0 !important;
+  }
+
+  .products-trust-row {
+    display: grid !important;
+  }
+
+  .products-trust-row span {
+    justify-content: center !important;
+  }
+}
+/* =========================================
+   URUNLER PAGE - COMPACT CORPORATE HERO FIX
+   EN ALTA EKLE
+========================================= */
+
+.products-hero {
+  grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.75fr) !important;
+  gap: 18px !important;
+  padding: 24px 0 36px !important;
+  align-items: stretch !important;
+}
+
+.products-hero-copy {
+  padding: 30px 34px !important;
+  border-radius: 32px !important;
+  min-height: auto !important;
+}
+
+.products-hero-copy h1 {
+  max-width: 620px !important;
+  margin-bottom: 16px !important;
+  font-size: clamp(36px, 4.7vw, 64px) !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.075em !important;
+}
+
+.products-hero-copy h1 span {
+  margin-top: 4px !important;
+}
+
+.products-hero-copy > p {
+  max-width: 590px !important;
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.products-hero-copy .hero-actions {
+  margin-top: 24px !important;
+  gap: 10px !important;
+}
+
+.products-hero-copy .primary-btn,
+.products-hero-copy .secondary-btn {
+  min-height: 44px !important;
+  padding: 0 20px !important;
+  font-size: 14px !important;
+}
+
+.products-trust-row {
+  margin-top: 20px !important;
+  gap: 8px !important;
+}
+
+.products-trust-row span {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+}
+
+.products-hero-copy::after {
+  right: 18px !important;
+  bottom: -24px !important;
+  font-size: clamp(78px, 11vw, 140px) !important;
+}
+
+/* Sağ tarafı da sıkılaştır */
+.products-hero-panel {
+  gap: 12px !important;
+}
+
+.products-hero-card {
+  padding: 24px 26px !important;
+  border-radius: 30px !important;
+}
+
+.products-hero-card strong {
+  margin-bottom: 10px !important;
+  font-size: 24px !important;
+  line-height: 1.08 !important;
+}
+
+.products-hero-card p {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.products-mini-grid {
+  gap: 10px !important;
+}
+
+.products-mini-grid article {
+  padding: 17px 18px !important;
+  border-radius: 22px !important;
+}
+
+.products-mini-grid small {
+  margin-bottom: 6px !important;
+  font-size: 11px !important;
+}
+
+.products-mini-grid strong {
+  margin-bottom: 5px !important;
+  font-size: 16px !important;
+}
+
+.products-mini-grid p {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+
+/* Katalog başlığı da yukarı çok yer kaplamasın */
+.products-catalog-section {
+  padding: 34px 0 66px !important;
+}
+
+.products-catalog-section .section-head {
+  margin-bottom: 30px !important;
+}
+
+.products-catalog-section .section-head h2 {
+  font-size: clamp(34px, 4.6vw, 58px) !important;
+  line-height: 0.96 !important;
+}
+
+/* Mobilde temiz dursun */
+@media (max-width: 1080px) {
+  .products-hero {
+    grid-template-columns: 1fr !important;
+    padding-top: 18px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .products-hero-copy,
+  .products-hero-card {
+    padding: 24px !important;
+    border-radius: 28px !important;
+  }
+
+  .products-hero-copy h1 {
+    font-size: clamp(34px, 10vw, 52px) !important;
+  }
+
+  .products-hero-copy .hero-actions {
+    display: grid !important;
+  }
+}
+/* ================================
+   AKC ULTRA PREMIUM FOOTER
+================================ */
+
+.akc-footer {
+  position: relative;
+  overflow: hidden;
+  margin: 96px 0 34px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 42px;
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent-soft) 18%, transparent), transparent 28rem),
+    radial-gradient(circle at 94% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 30rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.032));
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.akc-footer::after {
+  content: "AKC";
+  position: absolute;
+  right: 24px;
+  bottom: -52px;
+  color: rgba(255, 255, 255, 0.035);
+  font-size: clamp(110px, 17vw, 230px);
+  font-weight: 1000;
+  letter-spacing: -0.12em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.akc-footer-glow {
+  position: absolute;
+  right: 12%;
+  top: -120px;
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 22%, transparent);
+  filter: blur(72px);
+  pointer-events: none;
+}
+
+.akc-footer-top {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.15fr auto;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 34px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 32px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+}
+
+.akc-footer-top h2 {
+  max-width: 760px;
+  margin: 0 0 12px;
+  color: var(--foreground);
+  font-size: clamp(30px, 4vw, 54px);
+  line-height: 0.96;
+  letter-spacing: -0.065em;
+}
+
+.akc-footer-top p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.akc-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.akc-footer-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.35fr 0.8fr 0.95fr 1.05fr;
+  gap: 18px;
+}
+
+.akc-footer-brand,
+.akc-footer-column,
+.akc-footer-contact {
+  min-height: 260px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.026));
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
+}
+
+.akc-footer-brand {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.akc-footer-mark {
+  display: grid;
+  width: 66px;
+  height: 66px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 22px;
+  color: var(--button-text);
+  font-size: 18px;
+  font-weight: 1000;
+  letter-spacing: -0.06em;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.76), transparent 30%),
+    linear-gradient(135deg, var(--gold-soft), var(--gold));
+  box-shadow: 0 18px 46px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.akc-footer-brand strong {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--foreground);
+  font-size: 25px;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+
+.akc-footer-brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.akc-footer-column h3,
+.akc-footer-contact h3 {
+  margin: 0 0 18px;
+  color: var(--gold-soft);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.akc-footer-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.akc-footer-column a,
+.akc-footer-column span,
+.akc-footer-contact a {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 34px;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 850;
+  transition:
+    color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.akc-footer-column a:hover,
+.akc-footer-contact a:hover {
+  color: var(--gold-soft);
+  transform: translateX(4px);
+}
+
+.akc-footer-column span {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.akc-footer-contact {
+  display: flex;
+  flex-direction: column;
+}
+
+.akc-footer-contact p {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.akc-footer-bottom {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 20px;
+  padding: 20px 4px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.akc-footer-bottom div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.akc-footer-bottom div span {
+  padding: 7px 10px;
+  border: 1px solid rgba(240, 210, 138, 0.14);
+  border-radius: 999px;
+  color: var(--gold-soft);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(214, 165, 75, 0.08);
+}
+
+@media (max-width: 1080px) {
+  .akc-footer-top,
+  .akc-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .akc-footer-actions {
+    justify-content: flex-start;
+  }
+
+  .akc-footer-brand,
+  .akc-footer-column,
+  .akc-footer-contact {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .akc-footer {
+    margin-top: 70px;
+    padding: 20px;
+    border-radius: 32px;
+  }
+
+  .akc-footer-top {
+    padding: 22px;
+    border-radius: 26px;
+  }
+
+  .akc-footer-brand {
+    flex-direction: column;
+  }
+
+  .akc-footer-bottom {
+    flex-direction: column;
+  }
+
+  .akc-footer-bottom div {
+    justify-content: flex-start;
+  }
 }
