@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import "./globals.css";
 import "./admin.css";
+import "./auth.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import AnalyticsScripts from "@/components/AnalyticsScripts";
 import CookieConsent from "@/components/CookieConsent";

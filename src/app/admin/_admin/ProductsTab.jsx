@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getProductPricing } from "./admin.helpers";
 
 const quickCategories = [
@@ -43,8 +43,17 @@ export default function ProductsTab({
 }) {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef(null);
+  const savingRef = useRef(saving);
+  const resetProductFormRef = useRef(resetProductForm);
 
   const formPrice = getProductPricing(productForm);
+
+  useEffect(() => {
+    savingRef.current = saving;
+    resetProductFormRef.current = resetProductForm;
+  }, [resetProductForm, saving]);
 
   const productStats = useMemo(() => {
     const total = products.length;
@@ -91,6 +100,49 @@ export default function ProductsTab({
     setProductForm({ ...productForm, [key]: value });
   }
 
+  function openCreateModal() {
+    resetProductForm();
+    setIsModalOpen(true);
+  }
+
+  function openEditModal(product) {
+    editProduct(product);
+    setIsModalOpen(true);
+  }
+
+  function closeModal() {
+    if (saving) return;
+    setIsModalOpen(false);
+    resetProductForm();
+  }
+
+  async function handleModalSubmit(event) {
+    const saved = await saveProduct(event);
+    if (saved) setIsModalOpen(false);
+  }
+
+  useEffect(() => {
+    if (!isModalOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    modalRef.current?.focus();
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape" && !savingRef.current) {
+        setIsModalOpen(false);
+        resetProductFormRef.current();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isModalOpen]);
+
   return (
     <section className="admin-panel products-admin-panel">
       <div className="product-admin-hero">
@@ -107,15 +159,9 @@ export default function ProductsTab({
         </div>
 
         <div className="product-admin-hero-actions">
-          {editingProductId ? (
-            <button
-              className="admin-secondary-btn"
-              type="button"
-              onClick={resetProductForm}
-            >
-              Düzenlemeyi İptal Et
-            </button>
-          ) : null}
+          <button className="admin-primary-btn product-create-trigger" type="button" onClick={openCreateModal}>
+            <span aria-hidden="true">+</span> Yeni ürün ekle
+          </button>
 
           <a className="admin-secondary-btn" href="/urunler" target="_blank">
             Kataloğu Gör
@@ -149,7 +195,21 @@ export default function ProductsTab({
         </article>
       </div>
 
-      <form className="product-form-shell" onSubmit={saveProduct}>
+      {isModalOpen ? (
+      <div className="product-modal-backdrop" role="presentation" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) closeModal();
+      }}>
+      <div className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" tabIndex={-1} ref={modalRef}>
+        <header className="product-modal-header">
+          <div>
+            <span className="product-modal-kicker">AKC KATALOG YÖNETİMİ</span>
+            <h3 id="product-modal-title">{editingProductId ? "Ürün bilgilerini düzenle" : "Yeni ürün oluştur"}</h3>
+            <p>Ürün bilgilerini, fiyatlandırmayı ve katalog görünümünü tek işlemde tamamlayın.</p>
+          </div>
+          <button className="product-modal-close" type="button" onClick={closeModal} disabled={saving} aria-label="Ürün penceresini kapat">×</button>
+        </header>
+
+      <form className="product-form-shell product-modal-form" onSubmit={handleModalSubmit}>
         <div className="product-form-section">
           <div className="form-section-title">
             <span>01</span>
@@ -370,6 +430,9 @@ export default function ProductsTab({
           </button>
         </div>
       </form>
+      </div>
+      </div>
+      ) : null}
 
       <div className="admin-product-toolbar">
         <div>
@@ -456,7 +519,7 @@ export default function ProductsTab({
               </div>
 
               <div className="item-actions item-actions--stacked">
-                <button type="button" onClick={() => editProduct(product)}>
+                <button type="button" onClick={() => openEditModal(product)}>
                   Düzenle
                 </button>
 

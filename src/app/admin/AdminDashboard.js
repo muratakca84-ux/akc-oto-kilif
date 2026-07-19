@@ -282,7 +282,7 @@ export default function AdminDashboard() {
 
     if (!String(productForm.title || "").trim()) {
       showToast("Ürün başlığı zorunludur.");
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -328,8 +328,10 @@ export default function AdminDashboard() {
       }
 
       resetProductForm();
+      return true;
     } catch (error) {
       showToast(error?.message || "Ürün kaydedilemedi.");
+      return false;
     } finally {
       setSaving(false);
     }

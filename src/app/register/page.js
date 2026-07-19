@@ -24,6 +24,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -164,8 +165,7 @@ export default function RegisterPage() {
 
   return (
     <main className="auth-page">
-      <div className="auth-bg-orb auth-bg-orb-one" />
-      <div className="auth-bg-orb auth-bg-orb-two" />
+      <div className="auth-grid" aria-hidden="true" />
 
       <section className="auth-card auth-card-wide">
         <div className="auth-card-glow" />
@@ -187,36 +187,36 @@ export default function RegisterPage() {
 
         <div className="auth-layout">
           <div className="auth-copy">
-            <p className="eyebrow">Yeni Üyelik</p>
+            <p className="eyebrow"><span /> AKC Müşteri Portalı</p>
 
             <h1>
-              Teklif ve işlem süreci
-              <span>daha düzenli ilerlesin.</span>
+              Ayrıcalıklı hizmet deneyiminiz
+              <span>burada başlıyor.</span>
             </h1>
 
             <p>
-              Üyelik oluşturarak AKC Oto Kılıf teklif sürecini daha düzenli
-              takip edebilirsiniz. Bu üyelik müşteri hesabıdır; admin yetkisi
-              yalnızca işletme tarafından verilir.
+              Aracınıza özel teklifleri, hizmet kayıtlarını ve iletişim sürecini
+              güvenli müşteri hesabınız üzerinden tek noktadan yönetin.
             </p>
 
             <div className="auth-highlight-row" aria-label="Öne çıkan avantajlar">
-              <span className="auth-highlight-pill">✨ Kolay üyelik</span>
-              <span className="auth-highlight-pill">📱 Mobil uyumlu</span>
-              <span className="auth-highlight-pill">🛡️ Güvenli profil</span>
+              <span className="auth-highlight-pill"><b>01</b> Hızlı üyelik</span>
+              <span className="auth-highlight-pill"><b>02</b> Mobil erişim</span>
+              <span className="auth-highlight-pill"><b>03</b> Güvenli profil</span>
             </div>
 
             <div className="auth-benefits">
-              <p>✓ Müşteri profili oluşturma</p>
-              <p>✓ Teklif ve iletişim süreçleri için hazır altyapı</p>
-              <p>✓ Google veya e-posta ile hızlı üyelik</p>
+              <p><span>✓</span> Size özel müşteri profili</p>
+              <p><span>✓</span> Düzenli teklif ve hizmet geçmişi</p>
+              <p><span>✓</span> Korunan kişisel veriler</p>
             </div>
           </div>
 
           <div className="auth-form-card">
             <div className="auth-form-intro">
-              <strong>Yeni müşteri hesabı</strong>
-              <span>İşlem sürecine hazır bir profil oluşturun.</span>
+              <small>YENİ MÜŞTERİ KAYDI</small>
+              <strong>Hesabınızı oluşturun</strong>
+              <span>Birkaç bilgiyle güvenli profilinizi tamamlayın.</span>
             </div>
 
             <form className="auth-form" onSubmit={handleRegister}>
@@ -260,15 +260,19 @@ export default function RegisterPage() {
 
               <label>
                 <span>Şifre</span>
-                <input
-                  type="password"
+                <span className="auth-input-shell"><input
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   placeholder="En az 6 karakter"
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="new-password"
                   disabled={busy}
                   required
-                />
+                /><button className="auth-password-toggle" type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}>
+                  {showPassword ? "Gizle" : "Göster"}
+                </button></span>
               </label>
 
               <label className="auth-check">
@@ -285,7 +289,7 @@ export default function RegisterPage() {
               </label>
 
               <button className="auth-primary-btn" type="submit" disabled={busy}>
-                {busy ? "Üyelik oluşturuluyor..." : "Üye ol"}
+                {busy ? "Üyelik oluşturuluyor..." : <>Hesap oluştur <span>→</span></>}
               </button>
             </form>
 
@@ -310,14 +314,13 @@ export default function RegisterPage() {
               <a href="mailto:info@akcotokilif.com">Destek al</a>
             </div>
 
-            <p className="auth-message">{message}</p>
+            <p className="auth-message" role="status" aria-live="polite">{message}</p>
 
             <div className="auth-note">
               <strong>Güvenlik notu:</strong>
               <span>
-                Bu sayfadan oluşturulan hesaplar müşteri hesabıdır. Admin
-                yetkisi sadece Firestore <code>admins</code> koleksiyonu
-                üzerinden işletme tarafından verilir.
+                Hesabınız müşteri profili olarak oluşturulur. Yetkili erişimleri
+                yalnızca AKC yönetimi tarafından tanımlanır.
               </span>
             </div>
           </div>
