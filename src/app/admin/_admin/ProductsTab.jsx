@@ -172,20 +172,22 @@ export default function ProductsTab({
 
             <label className="field-label">
               <span>Kategori</span>
-              <input
-                placeholder="Binek Araç"
+              <select
                 value={productForm.category ?? ""}
                 onChange={(event) => updateForm("category", event.target.value)}
-              />
+              >
+                {quickCategories.map((category) => <option value={category} key={category}>{category}</option>)}
+              </select>
             </label>
 
             <label className="field-label">
               <span>Malzeme</span>
-              <input
-                placeholder="Deri görünümlü"
+              <select
                 value={productForm.material ?? ""}
                 onChange={(event) => updateForm("material", event.target.value)}
-              />
+              >
+                {materialOptions.map((material) => <option value={material} key={material}>{material}</option>)}
+              </select>
             </label>
 
             <label className="field-label">
@@ -209,34 +211,10 @@ export default function ProductsTab({
             </label>
           </div>
 
-          <div className="quick-chip-row">
-            <strong>Hızlı kategori:</strong>
-            {quickCategories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                onClick={() => updateForm("category", category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          <div className="quick-chip-row">
-            <strong>Hızlı malzeme:</strong>
-            {materialOptions.map((material) => (
-              <button
-                key={material}
-                type="button"
-                onClick={() => updateForm("material", material)}
-              >
-                {material}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div className="product-form-section">
+        <div className="product-form-side">
+        <div className="product-form-section product-form-section--price">
           <div className="form-section-title">
             <span>02</span>
             <div>
@@ -329,7 +307,7 @@ export default function ProductsTab({
           </div>
         </div>
 
-        <div className="product-form-section">
+        <div className="product-form-section product-form-section--image">
           <div className="form-section-title">
             <span>03</span>
             <div>
@@ -371,6 +349,7 @@ export default function ProductsTab({
               </div>
             )}
           </div>
+        </div>
         </div>
 
         <div className="product-form-actions">

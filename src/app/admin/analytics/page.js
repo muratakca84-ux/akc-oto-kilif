@@ -1,4 +1,4 @@
-import AnalyticsDashboard from "../AnalyticsDashboard";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "AKC Admin | Analitik ve SEO",
@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function AnalyticsPage() {
-  return <AnalyticsDashboard />;
+  redirect("/admin#analytics");
 }

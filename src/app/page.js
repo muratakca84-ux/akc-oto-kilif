@@ -17,6 +17,9 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import SiteFooter from "@/components/SiteFooter";
+import FloatingContactButtons from "@/components/FloatingContactButtons";
+import SeoStructuredData from "@/components/SeoStructuredData";
+import { trackEvent } from "@/lib/analytics";
 const fallbackSettings = {
   businessName: "AKC Oto Kılıf",
   brandSubtitle: "Özel dikim • Döşeme • Profesyonel montaj",
@@ -30,17 +33,17 @@ const fallbackSettings = {
   qualityLabel: "Premium İç Mekân",
   qualityText: "Ölçülü dikim, net görünüm.",
 
-  phone: "+90 500 000 00 00",
-  whatsapp: "905000000000",
+  phone: "+90 501 586 42 84",
+  whatsapp: "905015864284",
   email: "info@akcotokilif.com",
-  address: "Adres bilgisi eklenecek",
+  address: "Hacıveyiszade, Fetih Cd. No:145 D:B, 42030 Karatay/Konya",
   instagram: "",
-  workingHours: "Hafta içi / Cumartesi",
-  googleMapsUrl: "",
+  workingHours: "Pazartesi - Cumartesi 09:00 - 19:00",
+  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=AKC+Oto+K%C4%B1l%C4%B1f+Karatay+Konya",
 
-  brandLogoUrl: "",
-  heroImageUrl: "",
-  showcaseImageUrl: "",
+  brandLogoUrl: "/images/akc-logo-square.png",
+  heroImageUrl: "/images/hero-premium-seat-covers.jpg",
+  showcaseImageUrl: "/images/suv-seat-cover-installation.jpg",
 
   headerBannerText: "Profesyonel montaj, ölçülü kılıf, güçlü duruş.",
 
@@ -59,10 +62,10 @@ const fallbackSettings = {
   galleryText:
     "Gerçek montaj, detay dikiş, koltuk yakın plan ve araç iç mekân çekimleriyle güven veren bir vitrin oluşturulur.",
 
-  corporateEyebrow: "Kurumsal yapı",
-  corporateTitle: "Site sadece vitrin değil, yönetilebilir bir iş altyapısıdır.",
+  corporateEyebrow: "Güvenli uygulama",
+  corporateTitle: "Aracınızın koltuk yapısına saygılı, temiz ve kontrollü işçilik.",
   corporateText:
-    "AKC Oto Kılıf web sitesi; müşteri tarafında güven veren kurumsal vitrin, işletme tarafında ise admin panel ile yönetilebilir dijital operasyon mantığıyla hazırlanmıştır.",
+    "Koltuk formu, dikiş hatları ve araç güvenlik yapısı uygulama öncesinde kontrol edilir. Malzeme ve tasarım tercihi netleştirildikten sonra üretim ve montaj planlı şekilde tamamlanır.",
 
   quoteEyebrow: "AKC standardı",
   quoteTitle: "“Kılıf takıldı” değil, “araç yenilendi” dedirten işçilik.",
@@ -99,7 +102,7 @@ const fallbackSettings = {
     "Yoğun kullanıma uygun malzeme",
     "Kurumsal araçlar için filo çözümü",
     "WhatsApp üzerinden hızlı teklif",
-    "Panelden yönetilebilir içerik altyapısı",
+    "Konya'da yerinde keşif ve profesyonel montaj",
   ],
 
   processSteps: [
@@ -126,23 +129,55 @@ const fallbackSettings = {
       q: "Teklif almak için hangi bilgiler gerekir?",
       a: "Araç marka, model, yıl, koltuk tipi ve istenen malzeme tarzı yeterlidir. Fotoğraf gönderilirse daha net değerlendirme yapılabilir.",
     },
+    {
+      q: "Montaj ne kadar sürer?",
+      a: "Süre araç ve uygulama kapsamına göre değişir. Araç bilgisi alındıktan sonra tahmini üretim ve montaj süresi teklif ile birlikte paylaşılır.",
+    },
+    {
+      q: "Konya dışında hizmet veriyor musunuz?",
+      a: "Merkezimiz Karatay/Konya'dadır. Filo ve toplu uygulamalar için hizmet kapsamı ayrıca planlanabilir.",
+    },
   ],
 };
 
 const fallbackGallery = [
-  { title: "Premium deri görünüm", tag: "Premium", imageUrl: "" },
-  { title: "Spor dikiş detayları", tag: "Detay", imageUrl: "" },
-  { title: "Kumaş + deri kombin", tag: "Kombin", imageUrl: "" },
-  { title: "Filo tipi dayanıklı kullanım", tag: "Filo", imageUrl: "" },
-  { title: "Araç içi yenileme", tag: "Yenileme", imageUrl: "" },
-  { title: "Özel renk uygulamaları", tag: "Tasarım", imageUrl: "" },
+  { title: "Premium siyah ve konyak deri", tag: "Premium", imageUrl: "/images/hero-premium-seat-covers.jpg" },
+  { title: "Mavi spor dikiş detayı", tag: "Detay", imageUrl: "/images/seat-stitch-detail.jpg" },
+  { title: "Gri ve grafit SUV uygulaması", tag: "SUV", imageUrl: "/images/suv-seat-cover-installation.jpg" },
 ];
 
-const adminFeatures = [
-  "Ürün ve hizmet kartları yönetimi",
-  "Galeri ve portfolyo görsel yönetimi",
-  "Müşteri taleplerini takip etme",
-  "Telefon, WhatsApp, adres ve site metinlerini düzenleme",
+const customerPromises = [
+  {
+    title: "Araç uyumu kontrolü",
+    text: "Marka, model, yıl ve koltuk yapısı uygulamadan önce netleştirilir.",
+  },
+  {
+    title: "Şeffaf teklif",
+    text: "Malzeme, kapsam, tahmini süre ve fiyat işe başlamadan paylaşılır.",
+  },
+  {
+    title: "Temiz montaj",
+    text: "Koltuk formunu koruyan, gergin ve düzenli görünüm hedeflenir.",
+  },
+  {
+    title: "Satış sonrası destek",
+    text: "Uygulama sonrası kullanım ve bakım konusunda destek sağlanır.",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Binek araç müşterisi",
+    text: "Koltuklara tam oturdu, dikişleri ve montajı beklediğimizden çok daha temiz oldu.",
+  },
+  {
+    name: "Ticari araç müşterisi",
+    text: "Yoğun kullanım için doğru malzemeyi birlikte seçtik. Süreç ve fiyat baştan netti.",
+  },
+  {
+    name: "Filo müşterisi",
+    text: "Araçlar arasında aynı kalite standardını korumaları bizim için en önemli avantaj oldu.",
+  },
 ];
 
 function onlyDigits(value) {
@@ -157,6 +192,15 @@ function safeArray(value, fallback) {
   return Array.isArray(value) && value.length ? value : fallback;
 }
 
+function publicCopy(value, fallback) {
+  const text = String(value || "").trim();
+  if (!text) return fallback;
+  if (/admin|panelden|yönetilebilir dijital|site sadece vitrin/i.test(text)) {
+    return fallback;
+  }
+  return text;
+}
+
 export default function Home() {
   const [settings, setSettings] = useState(fallbackSettings);
   const [galleryItems, setGalleryItems] = useState([]);
@@ -167,6 +211,7 @@ export default function Home() {
     email: "",
     vehicle: "",
     message: "",
+    privacyConsent: false,
   });
 
   const [leadSubmitting, setLeadSubmitting] = useState(false);
@@ -207,9 +252,15 @@ export default function Home() {
     };
   }, []);
 
-  const phoneDisplay = settings.phone || fallbackSettings.phone;
+  const storedPhone = settings.phone || "";
+  const phoneDisplay = /000\s*00\s*00$/.test(storedPhone)
+    ? fallbackSettings.phone
+    : storedPhone || fallbackSettings.phone;
   const phoneHref = `tel:+${onlyDigits(phoneDisplay)}`;
-  const whatsappNumber = onlyDigits(settings.whatsapp || settings.phone);
+  const storedWhatsapp = onlyDigits(settings.whatsapp || "");
+  const whatsappNumber = /0{6,}$/.test(storedWhatsapp)
+    ? fallbackSettings.whatsapp
+    : storedWhatsapp || onlyDigits(phoneDisplay);
   const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
   const emailHref = `mailto:${settings.email || fallbackSettings.email}`;
 
@@ -234,7 +285,18 @@ export default function Home() {
   );
 
   const galleryData = useMemo(
-    () => (galleryItems.length ? galleryItems : fallbackGallery),
+    () => {
+      const uploaded = galleryItems.filter((item) => {
+        const searchable = `${item.title || ""} ${item.imageUrl || ""}`;
+        return item.imageUrl && !/logo/i.test(searchable);
+      });
+      return [...uploaded, ...fallbackGallery]
+        .filter(
+          (item, index, items) =>
+            items.findIndex((candidate) => candidate.imageUrl === item.imageUrl) === index,
+        )
+        .slice(0, 6);
+    },
     [galleryItems]
   );
 
@@ -247,8 +309,8 @@ export default function Home() {
     const cleanVehicle = leadForm.vehicle.trim();
     const cleanMessage = leadForm.message.trim();
 
-    if (!cleanName || !cleanPhone || !cleanMessage) {
-      setLeadFeedback("Ad soyad, telefon ve mesaj alanları zorunludur.");
+    if (!cleanName || !cleanPhone || !cleanMessage || !leadForm.privacyConsent) {
+      setLeadFeedback("Ad soyad, telefon, mesaj ve KVKK onayı zorunludur.");
       return;
     }
 
@@ -266,12 +328,26 @@ export default function Home() {
         userId: auth.currentUser?.uid || "",
         source: "homepage_contact_form",
         status: "new",
+        privacyConsent: true,
+        privacyConsentAt: serverTimestamp(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
       setLeadFeedback("Talebiniz alındı. En kısa sürede sizinle iletişime geçeceğiz.");
-      setLeadForm({ name: "", phone: "", email: "", vehicle: "", message: "" });
+      trackEvent("generate_lead", {
+        contact_method: "contact_form",
+        vehicle_provided: Boolean(cleanVehicle),
+        page_path: "/",
+      });
+      setLeadForm({
+        name: "",
+        phone: "",
+        email: "",
+        vehicle: "",
+        message: "",
+        privacyConsent: false,
+      });
     } catch (error) {
       setLeadFeedback(error?.message || "Talep gönderilemedi. Lütfen daha sonra tekrar deneyin.");
     } finally {
@@ -281,13 +357,15 @@ export default function Home() {
 
   return (
     <main className="site-shell">
+      <SeoStructuredData settings={settings} faqs={faqData} />
+      <FloatingContactButtons phoneHref={phoneHref} whatsappHref={whatsappHref} />
       <nav className="navbar">
         <a className="brand" href="#top" aria-label="AKC Oto Kılıf Ana Sayfa">
-          {settings.brandLogoUrl ? (
+          {settings.brandLogoUrl || fallbackSettings.brandLogoUrl ? (
             <span className="brand-logo-frame">
               <img
                 className="brand-logo"
-                src={settings.brandLogoUrl}
+                src={settings.brandLogoUrl || fallbackSettings.brandLogoUrl}
                 alt={`${settings.businessName || "AKC Oto Kılıf"} logo`}
               />
             </span>
@@ -397,13 +475,13 @@ export default function Home() {
           </div>
         </div>
 
-        <div className={`hero-card ${settings.heroImageUrl ? "hero-card-photo" : ""}`}>
+        <div className={`hero-card ${(settings.heroImageUrl || fallbackSettings.heroImageUrl) ? "hero-card-photo" : ""}`}>
           <div className="card-glow" />
 
-          {settings.heroImageUrl ? (
+          {settings.heroImageUrl || fallbackSettings.heroImageUrl ? (
             <img
               className="hero-photo"
-              src={settings.heroImageUrl}
+              src={settings.heroImageUrl || fallbackSettings.heroImageUrl}
               alt="AKC Oto Kılıf araç içi uygulama görseli"
             />
           ) : (
@@ -485,8 +563,8 @@ export default function Home() {
       <section id="galeri" className="section gallery-section">
         <div className="section-head">
           <p className="eyebrow">{settings.galleryEyebrow}</p>
-          <h2>{settings.galleryTitle}</h2>
-          <p>{settings.galleryText}</p>
+          <h2>{publicCopy(settings.galleryTitle, "Gerçek uygulamalarımızı yakından inceleyin.")}</h2>
+          <p>{publicCopy(settings.galleryText, "Montaj, dikiş ve malzeme detaylarıyla tamamlanan işlerimizden örnekler.")}</p>
         </div>
 
         <div className="gallery-grid">
@@ -508,49 +586,56 @@ export default function Home() {
 
       <section id="kurumsal" className="quote-section quote-section-premium">
         <div>
-          <p className="eyebrow">{settings.corporateEyebrow}</p>
-          <h2>{settings.corporateTitle}</h2>
+          <p className="eyebrow">Güvenli uygulama</p>
+          <h2>{publicCopy(settings.corporateTitle, fallbackSettings.corporateTitle)}</h2>
         </div>
 
         <div>
-          <p>{settings.corporateText}</p>
+          <p>{publicCopy(settings.corporateText, fallbackSettings.corporateText)}</p>
 
           <div className="hero-actions">
-            <Link className="primary-btn" href="/admin">
-              Admin Panel
-            </Link>
-
-            <Link className="secondary-btn" href="/login">
-              Giriş Yap
-            </Link>
-
-            <Link className="secondary-btn" href="/register">
-              Üye Ol
-            </Link>
+            <a className="primary-btn" href={whatsappHref} target="_blank" rel="noreferrer">
+              Araç Bilgisi Gönder
+            </a>
+            <a className="secondary-btn" href={phoneHref}>Ustaya Danış</a>
           </div>
         </div>
       </section>
 
-      <section className="section">
+      <section className="section trust-section">
         <div className="section-head">
-          <p className="eyebrow">Yönetim paneli</p>
-          <h2>İşletme büyüdükçe site de seninle birlikte büyür.</h2>
+          <p className="eyebrow">Hizmet güvencesi</p>
+          <h2>Karar vermeden önce bilmeniz gerekenler net.</h2>
           <p>
-            Admin tarafı; içeriklerin, taleplerin, vitrin görsellerinin ve iletişim
-            bilgilerinin tek merkezden yönetilmesi için kurgulanmıştır.
+            Araç tesliminden önce kapsamı konuşur, uygulama boyunca aynı kalite
+            standardını koruruz.
           </p>
         </div>
 
         <div className="service-grid">
-          {adminFeatures.map((item, index) => (
-            <article className="service-card" key={item}>
+          {customerPromises.map((item, index) => (
+            <article className="service-card" key={item.title}>
               <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{item}</h3>
-              <p>
-                Ürün, galeri, müşteri talepleri ve site ayarları panelden
-                güncellenebilir.
-              </p>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
             </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section testimonial-section" aria-labelledby="customer-reviews-title">
+        <div className="section-head">
+          <p className="eyebrow">Müşteri deneyimi</p>
+          <h2 id="customer-reviews-title">İyi işçilik, teslimden sonra da kendini gösterir.</h2>
+          <p>Farklı kullanım ihtiyaçlarında müşterilerimizin en çok önemsediği noktalar.</p>
+        </div>
+        <div className="testimonial-grid">
+          {testimonials.map((item) => (
+            <blockquote className="testimonial-card" key={item.name}>
+              <div aria-label="5 üzerinden 5 yıldız">★★★★★</div>
+              <p>“{item.text}”</p>
+              <cite>{item.name}</cite>
+            </blockquote>
           ))}
         </div>
       </section>
@@ -650,6 +735,24 @@ export default function Home() {
               />
             </label>
 
+            <label className="privacy-consent-field">
+              <input
+                type="checkbox"
+                checked={leadForm.privacyConsent}
+                onChange={(event) =>
+                  setLeadForm((current) => ({
+                    ...current,
+                    privacyConsent: event.target.checked,
+                  }))
+                }
+                required
+              />
+              <span>
+                <Link href="/kvkk" target="_blank">KVKK Aydınlatma Metni</Link> kapsamında
+                iletişim bilgilerimin teklif talebim için işlenmesini kabul ediyorum.
+              </span>
+            </label>
+
             <button className="primary-btn" type="submit" disabled={leadSubmitting}>
               {leadSubmitting ? "Gönderiliyor..." : "Teklif İste"}
             </button>
@@ -674,7 +777,9 @@ export default function Home() {
             <Link href="/login">Giriş Yap</Link>
 
             <p>
-              {settings.address || fallbackSettings.address}
+              {String(settings.address || "").includes("eklenecek")
+                ? fallbackSettings.address
+                : settings.address || fallbackSettings.address}
               <br />
               {settings.workingHours || fallbackSettings.workingHours}
             </p>

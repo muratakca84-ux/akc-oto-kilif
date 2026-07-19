@@ -31,6 +31,7 @@ import HomepageTab from "./_admin/HomepageTab";
 import ProductsTab from "./_admin/ProductsTab";
 import GalleryTab from "./_admin/GalleryTab";
 import LeadsTab from "./_admin/LeadsTab";
+import AnalyticsTab from "./_admin/AnalyticsTab";
 
 import {
   defaultSettings,
@@ -62,7 +63,12 @@ export default function AdminDashboard() {
 
   const [authState, setAuthState] = useState("loading");
   const [adminProfile, setAdminProfile] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === "undefined") return "overview";
+    const requestedTab = window.location.hash.replace("#", "");
+    const availableTabs = ["overview", "themes", "homepage", "products", "gallery", "leads", "analytics"];
+    return availableTabs.includes(requestedTab) ? requestedTab : "overview";
+  });
 
   const [products, setProducts] = useState([]);
   const [galleryItems, setGalleryItems] = useState([]);
@@ -273,6 +279,12 @@ export default function AdminDashboard() {
 
   async function saveProduct(event) {
     event.preventDefault();
+
+    if (!String(productForm.title || "").trim()) {
+      showToast("Ürün başlığı zorunludur.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -358,6 +370,12 @@ export default function AdminDashboard() {
 
   async function saveGallery(event) {
     event.preventDefault();
+
+    if (!String(galleryForm.title || "").trim()) {
+      showToast("Galeri başlığı zorunludur.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -431,6 +449,47 @@ export default function AdminDashboard() {
 
   async function saveSettings(event) {
     event.preventDefault();
+
+    if (!String(settingsDraft.phone || "").trim()) {
+      showToast("Müşterilerin ulaşabilmesi için telefon numarası zorunludur.");
+      return;
+    }
+
+    if (!String(settingsDraft.address || "").trim()) {
+      showToast("Yerel SEO ve müşteri güveni için adres zorunludur.");
+      return;
+    }
+
+    const siteUrl = String(settingsDraft.siteUrl || "").trim();
+    const ga4Id = String(settingsDraft.googleAnalyticsId || "").trim();
+    const gtmId = String(settingsDraft.googleTagManagerId || "").trim();
+    const pixelId = String(settingsDraft.metaPixelId || "").trim();
+
+    if (siteUrl && !/^https:\/\/[^\s]+$/i.test(siteUrl)) {
+      showToast("Canlı site adresi https:// ile başlayan geçerli bir URL olmalı.");
+      return;
+    }
+
+    if (ga4Id && !/^G-[A-Z0-9]{6,14}$/i.test(ga4Id)) {
+      showToast("GA4 Measurement ID formatı hatalı. Örnek: G-XXXXXXXXXX");
+      return;
+    }
+
+    if (gtmId && !/^GTM-[A-Z0-9]{4,12}$/i.test(gtmId)) {
+      showToast("Google Tag Manager ID formatı hatalı. Örnek: GTM-XXXXXXX");
+      return;
+    }
+
+    if (pixelId && !/^\d{8,20}$/.test(pixelId)) {
+      showToast("Meta Pixel ID yalnızca 8-20 rakamdan oluşmalı.");
+      return;
+    }
+
+    if (ga4Id && gtmId) {
+      showToast("Çift sayımı önlemek için GA4 veya GTM alanlarından yalnızca birini kullan.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -551,10 +610,11 @@ export default function AdminDashboard() {
   const tabs = [
     ["overview", "Özet", openLeads],
     ["themes", "Tema", 0],
-    ["homepage", "Ana Sayfa", 0],
+    ["homepage", "Site Ayarları", 0],
     ["products", "Ürünler", products.length],
     ["gallery", "Galeri", galleryItems.length],
     ["leads", "Talepler", openLeads],
+    ["analytics", "Analitik & SEO", 0],
   ];
 
   if (authState === "loading" || authState === "guest") {
@@ -670,6 +730,18 @@ export default function AdminDashboard() {
           leads={leads}
           updateLeadStatus={updateLeadStatus}
           removeLead={removeLead}
+        />
+      ) : null}
+
+      {activeTab === "analytics" ? (
+        <AnalyticsTab
+          settingsDraft={settingsDraft}
+          setSettingsDraft={setSettingsDraft}
+          saveSettings={saveSettings}
+          saving={saving}
+          products={products}
+          galleryItems={galleryItems}
+          leads={leads}
         />
       ) : null}
     </AdminShell>

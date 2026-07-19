@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getAnalyticsConsent, trackEvent } from "@/lib/analytics";
 
 const TRACK_LOCALHOST =
   process.env.NEXT_PUBLIC_TRACK_LOCALHOST === "true";
@@ -34,34 +35,17 @@ function getDeviceType() {
   return "desktop";
 }
 
-function sendToBrowserTrackers(path) {
-  if (typeof window === "undefined") return;
-
-  window.dataLayer = window.dataLayer || [];
-
-  window.dataLayer.push({
-    event: "akc_page_view",
-    page_path: path,
-    page_location: window.location.href,
-    page_title: document.title,
-  });
-
-  if (typeof window.gtag === "function") {
-    window.gtag("event", "page_view", {
-      page_path: path,
-      page_location: window.location.href,
-      page_title: document.title,
-    });
-  }
-
-  if (typeof window.fbq === "function") {
-    window.fbq("track", "PageView");
-  }
-}
-
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [consent, setConsent] = useState("pending");
+
+  useEffect(() => {
+    queueMicrotask(() => setConsent(getAnalyticsConsent()));
+    const handleConsent = (event) => setConsent(event.detail || getAnalyticsConsent());
+    window.addEventListener("akc-consent-updated", handleConsent);
+    return () => window.removeEventListener("akc-consent-updated", handleConsent);
+  }, []);
 
   const path = useMemo(() => {
     const query = searchParams?.toString();
@@ -70,18 +54,16 @@ export default function AnalyticsTracker() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (consent !== "granted") return;
     if (isLocalhost() && !TRACK_LOCALHOST) return;
 
     const sessionKey = `akc-pageview-${path}`;
 
     if (sessionStorage.getItem(sessionKey)) {
-      sendToBrowserTrackers(path);
       return;
     }
 
     sessionStorage.setItem(sessionKey, "1");
-
-    sendToBrowserTrackers(path);
 
     if (!ENABLE_FIRESTORE_ANALYTICS) return;
 
@@ -101,7 +83,43 @@ export default function AnalyticsTracker() {
     };
 
     addDoc(collection(db, "analyticsEvents"), record).catch(() => undefined);
-  }, [path]);
+  }, [path, consent]);
+
+  useEffect(() => {
+    function handleClick(event) {
+      const link = event.target.closest("a[href]");
+      if (!link || getAnalyticsConsent() !== "granted") return;
+
+      const href = link.getAttribute("href") || "";
+      const label = safeText(link.textContent, 120).trim();
+      let eventName = "select_content";
+      let contactMethod = "internal_link";
+
+      if (href.includes("wa.me")) {
+        eventName = "generate_lead";
+        contactMethod = "whatsapp";
+      } else if (href.startsWith("tel:")) {
+        eventName = "generate_lead";
+        contactMethod = "phone";
+      } else if (href.startsWith("mailto:")) {
+        eventName = "generate_lead";
+        contactMethod = "email";
+      } else if (href === "/urunler") {
+        eventName = "view_item_list";
+        contactMethod = "products";
+      }
+
+      trackEvent(eventName, {
+        contact_method: contactMethod,
+        link_url: href,
+        link_text: label,
+        page_path: window.location.pathname,
+      });
+    }
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
 
   return null;
 }

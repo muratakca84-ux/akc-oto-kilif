@@ -31,9 +31,9 @@ export const defaultSettings = {
   heroHighlight: "AKC standardı.",
   heroSubtitle:
     "AKC Oto Kılıf; binek, SUV, hafif ticari, taksi, servis ve filo araçları için ölçülü, dayanıklı, şık ve profesyonel montajlı oto kılıf hizmeti sunar.",
-  brandLogoUrl: "",
-  heroImageUrl: "",
-  showcaseImageUrl: "",
+  brandLogoUrl: "/images/akc-logo-square.png",
+  heroImageUrl: "/images/hero-premium-seat-covers.jpg",
+  showcaseImageUrl: "/images/suv-seat-cover-installation.jpg",
   qualityLabel: "Premium İç Mekân",
   qualityText: "Ölçülü dikim, net görünüm.",
 
@@ -53,14 +53,14 @@ export const defaultSettings = {
     "Araç bilgisi alınır, beklenti anlaşılır, doğru malzeme seçilir ve uygulama planlanır.",
 
   galleryEyebrow: "Galeri",
-  galleryTitle: "Panelden yüklenen işler burada kurumsal vitrine dönüşür.",
+  galleryTitle: "Gerçek uygulamalarımızı yakından inceleyin.",
   galleryText:
-    "Admin panelden galeri görseli yükledikçe bu alan otomatik güncellenir.",
+    "Montaj, dikiş ve malzeme detaylarıyla tamamlanan işlerimizden örnekler.",
 
-  corporateEyebrow: "Kurumsal yapı",
-  corporateTitle: "Site sadece vitrin değil, yönetilebilir bir iş altyapısıdır.",
+  corporateEyebrow: "Güvenli uygulama",
+  corporateTitle: "Aracınızın koltuk yapısına saygılı, temiz ve kontrollü işçilik.",
   corporateText:
-    "Müşteri tarafında güven veren kurumsal vitrin, işletme tarafında yönetilebilir dijital operasyon altyapısı.",
+    "Koltuk formu, dikiş hatları ve araç güvenlik yapısı uygulama öncesinde kontrol edilir.",
 
   quoteEyebrow: "AKC standardı",
   quoteTitle: "“Kılıf takıldı” değil, “araç yenilendi” dedirten işçilik.",
@@ -97,13 +97,22 @@ export const defaultSettings = {
   contactText:
     "Marka, model, yıl ve istediğiniz malzeme tarzını gönderin. Fotoğraf varsa ekleyin; size en uygun çözüm ve fiyat için dönüş yapılsın.",
 
-  phone: "+90 500 000 00 00",
-  whatsapp: "905000000000",
+  phone: "+90 501 586 42 84",
+  whatsapp: "905015864284",
   email: "info@akcotokilif.com",
-  address: "Adres bilgisi eklenecek",
+  address: "Hacıveyiszade, Fetih Cd. No:145 D:B, 42030 Karatay/Konya",
   instagram: "",
-  googleMapsUrl: "",
-  workingHours: "Hafta içi / Cumartesi",
+  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=AKC+Oto+K%C4%B1l%C4%B1f+Karatay+Konya",
+  workingHours: "Pazartesi - Cumartesi 09:00 - 19:00",
+
+  trackingEnabled: true,
+  trackLocalhost: false,
+  siteUrl: "https://akcotokilif.com",
+  googleAnalyticsId: "",
+  googleTagManagerId: "",
+  metaPixelId: "",
+  googleSiteVerification: "",
+  facebookDomainVerification: "",
 
   vehicleGroups: [
     "Binek Araç",
@@ -119,7 +128,7 @@ export const defaultSettings = {
     "Yoğun kullanıma uygun malzeme",
     "Kurumsal araçlar için filo çözümü",
     "WhatsApp üzerinden hızlı teklif",
-    "Panelden yönetilebilir içerik altyapısı",
+    "Konya'da yerinde keşif ve profesyonel montaj",
   ],
   processSteps: [
     "Araç marka, model ve yıl bilgisi alınır.",

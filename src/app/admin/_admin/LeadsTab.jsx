@@ -5,6 +5,8 @@ export default function LeadsTab({
   updateLeadStatus,
   removeLead,
 }) {
+  const onlyDigits = (value) => String(value || "").replace(/\D/g, "");
+
   return (
     <section className="admin-panel">
       <div className="panel-head">
@@ -34,6 +36,22 @@ export default function LeadsTab({
               <strong>
                 {lead.phone || lead.email || "İletişim bilgisi yok"}
               </strong>
+
+              <div className="lead-quick-contact">
+                {lead.phone ? (
+                  <>
+                    <a href={`tel:+${onlyDigits(lead.phone)}`}>Telefonla ara</a>
+                    <a
+                      href={`https://wa.me/${onlyDigits(lead.phone)}?text=${encodeURIComponent(`Merhaba ${lead.name || ""}, AKC Oto Kılıf teklif talebiniz için ulaşıyoruz.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      WhatsApp yaz
+                    </a>
+                  </>
+                ) : null}
+                {lead.email ? <a href={`mailto:${lead.email}`}>E-posta gönder</a> : null}
+              </div>
             </div>
 
             <div className="item-actions">

@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 const tabIcons = {
-  overview: "📊",
-  themes: "🎨",
-  homepage: "🏠",
-  products: "🧵",
-  gallery: "🖼️",
-  leads: "📩",
-  analytics: "📈",
+  overview: "M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-13h6V4h-6v3Z",
+  themes: "M12 3a9 9 0 1 0 0 18h1.5a1.5 1.5 0 0 0 0-3H12a1.5 1.5 0 0 1 0-3h2a7 7 0 0 0-2-12ZM7.5 12a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm2-4a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm2 4a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z",
+  homepage: "M19.4 13a7.8 7.8 0 0 0 0-2l2-1.5-2-3.5-2.4 1a8 8 0 0 0-1.7-1L15 3.5h-4L10.7 6A8 8 0 0 0 9 7L6.6 6 4.6 9.5l2 1.5a7.8 7.8 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 1.7 1l.3 2.5h4l.3-2.5a8 8 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z",
+  products: "M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Zm8 4.5 7.5-4.2M12 12 4.5 7.8M12 12v8.5",
+  gallery: "M4 5h16v14H4V5Zm2 11 4-4 3 3 2-2 3 3M8 9h.01",
+  leads: "M4 6h16v12H4V6Zm1 1 7 6 7-6",
+  analytics: "M5 19V9m7 10V5m7 14v-7",
 };
 
 function getDisplayName(adminProfile) {
@@ -56,7 +57,7 @@ export default function AdminShell({
       <aside className="admin-sidebar admin-sidebar-pro">
         <div className="admin-sidebar-head">
           <Link className="admin-logo admin-logo-pro" href="/">
-            <span>AKC</span>
+            <span><Image src="/images/akc-logo-square.png" alt="AKC Oto Kılıf" width={52} height={52} /></span>
             <div>
               <strong>AKC Admin</strong>
               <small>Operasyon Merkezi</small>
@@ -78,7 +79,7 @@ export default function AdminShell({
         <nav className="admin-tabs admin-tabs-pro" aria-label="Admin menü">
           {tabs.map(([key, label, count]) => {
             const isActive = activeTab === key;
-            const icon = tabIcons[key] || "•";
+            const icon = tabIcons[key] || tabIcons.overview;
 
             return (
               <button
@@ -87,7 +88,7 @@ export default function AdminShell({
                 onClick={() => setActiveTab(key)}
                 type="button"
               >
-                <span className="admin-tab-icon">{icon}</span>
+                <span className="admin-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={icon} /></svg></span>
 
                 <span className="admin-tab-copy">
                   <strong>{label}</strong>
@@ -106,10 +107,9 @@ export default function AdminShell({
             Siteyi aç
           </Link>
 
-          <Link className="admin-mini-action" href="/admin/analytics">
-            <span>📈</span>
-            Analitik
-          </Link>
+          <button className="admin-mini-action" type="button" onClick={() => setActiveTab("analytics")}>
+            <span>📈</span> Analitik merkezi
+          </button>
         </div>
 
         <div className="admin-user admin-user-pro">
@@ -165,9 +165,9 @@ export default function AdminShell({
               Örnek içerik
             </button>
 
-            <Link className="admin-secondary-btn" href="/admin/analytics">
-              Analitik
-            </Link>
+            <button className="admin-secondary-btn" type="button" onClick={() => setActiveTab("homepage")}>
+              Site ayarları
+            </button>
 
             <Link className="admin-primary-btn" href="/" target="_blank" rel="noreferrer">
               Siteyi görüntüle

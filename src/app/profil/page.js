@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -394,7 +395,7 @@ export default function ProfilePage() {
     <main className="site-shell page-shell">
       <nav className="navbar navbar--compact">
         <Link className="brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
-          <span className="brand-mark">AKC</span>
+          <span className="brand-mark"><Image src="/images/akc-logo-square.png" alt="" width={52} height={52} /></span>
           <span>
             <strong>AKC Oto Kılıf</strong>
             <small>

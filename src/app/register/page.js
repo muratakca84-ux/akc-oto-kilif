@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -171,7 +172,7 @@ export default function RegisterPage() {
 
         <div className="auth-header">
           <Link className="auth-brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
-            <span className="auth-logo">AKC</span>
+            <span className="auth-logo"><Image src="/images/akc-logo-square.png" alt="" width={58} height={58} /></span>
 
             <span className="auth-brand-text">
               <strong>AKC Oto Kılıf</strong>

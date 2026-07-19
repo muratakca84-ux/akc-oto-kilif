@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -45,6 +46,27 @@ function getStatus(value) {
   return cleanText(value) ? "Aktif" : "Eksik";
 }
 
+function isValidGa4(value) {
+  return !cleanText(value) || /^G-[A-Z0-9]{6,14}$/i.test(cleanText(value));
+}
+
+function isValidGtm(value) {
+  return !cleanText(value) || /^GTM-[A-Z0-9]{4,12}$/i.test(cleanText(value));
+}
+
+function isValidPixel(value) {
+  return !cleanText(value) || /^\d{8,20}$/.test(cleanText(value));
+}
+
+function isValidSiteUrl(value) {
+  try {
+    const url = new URL(cleanText(value));
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function formatDate(value) {
   if (!value) return "-";
 
@@ -73,6 +95,7 @@ export default function AnalyticsDashboard() {
   const [leads, setLeads] = useState([]);
   const [products, setProducts] = useState([]);
   const [galleryItems, setGalleryItems] = useState([]);
+  const [analyticsEvents, setAnalyticsEvents] = useState([]);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
@@ -88,6 +111,20 @@ export default function AnalyticsDashboard() {
   );
 
   const latestLead = useMemo(() => leads[0], [leads]);
+
+  const analyticsSummary = useMemo(() => {
+    const devices = analyticsEvents.reduce((accumulator, event) => {
+      const key = event.deviceType || "unknown";
+      accumulator[key] = (accumulator[key] || 0) + 1;
+      return accumulator;
+    }, {});
+
+    return {
+      pageviews: analyticsEvents.filter((event) => event.eventType === "pageview").length,
+      mobile: devices.mobile || 0,
+      desktop: devices.desktop || 0,
+    };
+  }, [analyticsEvents]);
 
   const trackingCards = useMemo(
     () => [
@@ -199,6 +236,12 @@ export default function AnalyticsDashboard() {
       limit(150)
     );
 
+    const eventsQuery = query(
+      collection(db, "analyticsEvents"),
+      orderBy("createdAt", "desc"),
+      limit(500)
+    );
+
     const unsubLeads = onSnapshot(
       leadsQuery,
       (snapshot) => {
@@ -227,11 +270,22 @@ export default function AnalyticsDashboard() {
       (error) => showToast(error?.message || "Galeri okunamadı.")
     );
 
+    const unsubEvents = onSnapshot(
+      eventsQuery,
+      (snapshot) => {
+        setAnalyticsEvents(
+          snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+        );
+      },
+      (error) => showToast(error?.message || "Analitik olayları okunamadı.")
+    );
+
     return () => {
       unsubSettings();
       unsubLeads();
       unsubProducts();
       unsubGallery();
+      unsubEvents();
     };
   }, [authState]);
 
@@ -242,6 +296,32 @@ export default function AnalyticsDashboard() {
 
   async function saveTracking(event) {
     event.preventDefault();
+
+    if (!isValidSiteUrl(tracking.siteUrl)) {
+      showToast("Site URL https:// ile başlayan geçerli bir adres olmalı.");
+      return;
+    }
+
+    if (!isValidGtm(tracking.googleTagManagerId)) {
+      showToast("GTM ID formatı hatalı. Örnek: GTM-XXXXXXX");
+      return;
+    }
+
+    if (!isValidGa4(tracking.googleAnalyticsId)) {
+      showToast("GA4 Measurement ID formatı hatalı. Örnek: G-XXXXXXXXXX");
+      return;
+    }
+
+    if (!isValidPixel(tracking.metaPixelId)) {
+      showToast("Meta Pixel ID yalnızca 8-20 rakamdan oluşmalı.");
+      return;
+    }
+
+    if (tracking.googleTagManagerId && tracking.googleAnalyticsId) {
+      showToast("GTM ve doğrudan GA4 aynı anda girildi. Çift sayımı önlemek için birini kullanın.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -302,7 +382,7 @@ export default function AnalyticsDashboard() {
     <main className="admin-shell">
       <aside className="admin-sidebar">
         <Link className="admin-logo" href="/admin">
-          <span>AKC</span>
+          <span><Image src="/images/akc-logo-square.png" alt="AKC Oto Kılıf" width={52} height={52} /></span>
           <strong>Analitik</strong>
         </Link>
 
@@ -369,6 +449,37 @@ export default function AnalyticsDashboard() {
             <strong>{tracking.trackingEnabled !== false ? "Açık" : "Kapalı"}</strong>
             <p>Site geneli ölçüm durumu</p>
           </article>
+        </section>
+
+        <section className="admin-panel analytics-health-panel">
+          <div className="panel-head">
+            <div>
+              <h2>Ölçüm özeti</h2>
+              <p>Firestore üzerinde tutulan son 500 anonim sayfa görüntüleme kaydı.</p>
+            </div>
+          </div>
+          <div className="admin-grid">
+            <article className="admin-stat">
+              <span>Sayfa görüntüleme</span>
+              <strong>{analyticsSummary.pageviews}</strong>
+              <p>Tekrarsız oturum/sayfa kayıtları</p>
+            </article>
+            <article className="admin-stat">
+              <span>Mobil</span>
+              <strong>{analyticsSummary.mobile}</strong>
+              <p>Mobil cihaz görüntülemeleri</p>
+            </article>
+            <article className="admin-stat">
+              <span>Masaüstü</span>
+              <strong>{analyticsSummary.desktop}</strong>
+              <p>Masaüstü cihaz görüntülemeleri</p>
+            </article>
+            <article className="admin-stat">
+              <span>Kurulum sağlığı</span>
+              <strong>{tracking.googleAnalyticsId || tracking.googleTagManagerId ? "Hazır" : "ID bekliyor"}</strong>
+              <p>Çerez iznine bağlı ölçüm</p>
+            </article>
+          </div>
         </section>
 
         <section className="admin-panel">

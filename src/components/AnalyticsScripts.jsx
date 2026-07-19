@@ -1,10 +1,11 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getAnalyticsConsent } from "@/lib/analytics";
 
 const envTracking = {
   trackingEnabled: true,
@@ -22,6 +23,18 @@ function cleanId(value) {
   return String(value || "")
     .trim()
     .replace(/[^\w.-]/g, "");
+}
+
+function validGaId(value) {
+  return /^G-[A-Z0-9]{6,14}$/i.test(value);
+}
+
+function validGtmId(value) {
+  return /^GTM-[A-Z0-9]{4,12}$/i.test(value);
+}
+
+function validPixelId(value) {
+  return /^\d{8,20}$/.test(value);
 }
 
 function isLocalhost() {
@@ -52,6 +65,20 @@ export default function AnalyticsScripts() {
   const searchParams = useSearchParams();
 
   const [tracking, setTracking] = useState(envTracking);
+  const [consent, setConsent] = useState("pending");
+  const trackedInitialPage = useRef(false);
+
+  useEffect(() => {
+    const syncConsent = () => setConsent(getAnalyticsConsent());
+    queueMicrotask(syncConsent);
+
+    function handleConsent(event) {
+      setConsent(event.detail || getAnalyticsConsent());
+    }
+
+    window.addEventListener("akc-consent-updated", handleConsent);
+    return () => window.removeEventListener("akc-consent-updated", handleConsent);
+  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -87,13 +114,23 @@ export default function AnalyticsScripts() {
   }, []);
 
   const ids = useMemo(
-    () => ({
-      gtmId: cleanId(tracking.googleTagManagerId),
-      gaId: cleanId(tracking.googleAnalyticsId),
-      pixelId: cleanId(tracking.metaPixelId),
+    () => {
+      const gtmId = validGtmId(cleanId(tracking.googleTagManagerId))
+        ? cleanId(tracking.googleTagManagerId)
+        : "";
+
+      return {
+      gtmId,
+      gaId: !gtmId && validGaId(cleanId(tracking.googleAnalyticsId))
+        ? cleanId(tracking.googleAnalyticsId)
+        : "",
+      pixelId: validPixelId(cleanId(tracking.metaPixelId))
+        ? cleanId(tracking.metaPixelId)
+        : "",
       googleVerify: String(tracking.googleSiteVerification || "").trim(),
       facebookVerify: String(tracking.facebookDomainVerification || "").trim(),
-    }),
+    };
+    },
     [tracking]
   );
 
@@ -104,6 +141,7 @@ export default function AnalyticsScripts() {
 
   const shouldTrack =
     tracking.trackingEnabled !== false &&
+    consent === "granted" &&
     (!isLocalhost() || tracking.trackLocalhost === true);
 
   useEffect(() => {
@@ -117,25 +155,27 @@ export default function AnalyticsScripts() {
 
     window.dataLayer = window.dataLayer || [];
 
-    window.dataLayer.push({
-      event: "virtual_page_view",
-      page_path: pageUrl,
-      page_location: window.location.href,
-      page_title: document.title,
-    });
-
-    if (ids.gaId && typeof window.gtag === "function") {
-      window.gtag("config", ids.gaId, {
+    if (
+      trackedInitialPage.current &&
+      ids.gaId &&
+      typeof window.gtag === "function"
+    ) {
+      window.gtag("event", "page_view", {
         page_path: pageUrl,
         page_location: window.location.href,
         page_title: document.title,
       });
     }
 
-    if (ids.pixelId && typeof window.fbq === "function") {
-      window.fbq("track", "PageView");
-    }
-  }, [pageUrl, ids.gaId, ids.pixelId, shouldTrack]);
+    window.dataLayer.push({
+      event: "akc_page_view",
+      page_path: pageUrl,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+
+    trackedInitialPage.current = true;
+  }, [pageUrl, ids.gaId, shouldTrack]);
 
   if (!shouldTrack) return null;
 
@@ -185,7 +225,7 @@ export default function AnalyticsScripts() {
               window.gtag = gtag;
               gtag('js', new Date());
               gtag('config', '${ids.gaId}', {
-                send_page_view: false
+                send_page_view: true
               });
             `}
           </Script>

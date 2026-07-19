@@ -6,19 +6,20 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AuthNavMenu from "@/components/AuthNavMenu";
 import ProductCatalog from "@/components/ProductCatalog";
+import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const fallbackSettings = {
   businessName: "AKC Oto Kılıf",
   brandSubtitle: "Premium ürünler • Sipariş merkezi",
-  brandLogoUrl: "",
-  phone: "+90 500 000 00 00",
-  whatsapp: "905000000000",
+  brandLogoUrl: "/images/akc-logo-square.png",
+  phone: "+90 501 586 42 84",
+  whatsapp: "905015864284",
   email: "info@akcotokilif.com",
-  address: "Adres bilgisi eklenecek",
-  workingHours: "Hafta içi / Cumartesi",
-  heroImageUrl: "",
+  address: "Hacıveyiszade, Fetih Cd. No:145 D:B, 42030 Karatay/Konya",
+  workingHours: "Pazartesi - Cumartesi 09:00 - 19:00",
+  heroImageUrl: "/images/hero-premium-seat-covers.jpg",
 };
 
 function onlyDigits(value) {
@@ -71,6 +72,7 @@ export default function ProductsPage() {
 
   return (
     <main className="site-shell page-shell products-page-shell">
+      <FloatingContactButtons phoneHref={phoneHref} whatsappHref={whatsappHref} />
       <nav className="navbar navbar--compact">
         <Link className="brand" href="/" aria-label="AKC Oto Kılıf Ana Sayfa">
           {settings.brandLogoUrl ? (

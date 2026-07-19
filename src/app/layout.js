@@ -2,7 +2,10 @@ import { Suspense } from "react";
 import "./globals.css";
 import "./admin.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import AnalyticsScripts from "@/components/AnalyticsScripts";
+import CookieConsent from "@/components/CookieConsent";
 import ThemeProvider from "@/components/ThemeProvider";
+import ControlGate from "@/components/dromocob-control/control-gate";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://akcotokilif.com";
 
@@ -15,7 +18,17 @@ export const metadata = {
   },
 
   description:
-    "AKC Oto Kılıf; araca özel oto kılıf, koltuk döşeme, direksiyon kaplama, taban döşeme ve profesyonel montaj hizmetleri sunar.",
+    "Konya AKC Oto Kılıf; araca özel oto kılıf, koltuk döşeme, direksiyon kaplama ve profesyonel montaj hizmetleri sunar.",
+
+  alternates: {
+    canonical: "/",
+  },
+
+  category: "automotive",
+
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+  },
 
   keywords: [
     "AKC Oto Kılıf",
@@ -23,7 +36,7 @@ export const metadata = {
     "araç koltuk kılıfı",
     "özel dikim oto kılıf",
     "oto döşeme",
-    "İstanbul oto kılıf",
+    "Konya oto kılıf",
     "profesyonel oto kılıf",
     "araç iç döşeme",
     "deri oto kılıf",
@@ -38,14 +51,6 @@ export const metadata = {
     siteName: "AKC Oto Kılıf",
     locale: "tr_TR",
     type: "website",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "AKC Oto Kılıf",
-      },
-    ],
   },
 
   twitter: {
@@ -53,7 +58,6 @@ export const metadata = {
     title: "AKC Oto Kılıf | Aracınıza Özel Oto Kılıf",
     description:
       "Araca özel oto kılıf, döşeme ve profesyonel montaj çözümleri.",
-    images: ["/og-image.jpg"],
   },
 
   robots: {
@@ -62,29 +66,57 @@ export const metadata = {
   },
 
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
   },
+
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#070707",
+  themeColor: "#f7f7f3",
 };
 
 export default function RootLayout({ children }) {
+  const pageContent = process.env.DROMOCOB_CONTROL_ENABLED === "true"
+    ? <ControlGate>{children}</ControlGate>
+    : children;
+
   return (
     <html lang="tr" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <script
+          id="akc-consent-default"
+          dangerouslySetInnerHTML={{ __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = window.gtag || gtag;
+            gtag('consent', 'default', {
+              analytics_storage: 'denied', ad_storage: 'denied',
+              ad_user_data: 'denied', ad_personalization: 'denied',
+              wait_for_update: 500
+            });
+            try {
+              if (localStorage.getItem('akc-analytics-consent') === 'granted') {
+                gtag('consent', 'update', { analytics_storage: 'granted' });
+              }
+            } catch (_) {}
+          ` }}
+        />
+      </head>
       <body suppressHydrationWarning>
         <ThemeProvider />
 
         <Suspense fallback={null}>
+          <AnalyticsScripts />
           <AnalyticsTracker />
         </Suspense>
 
-        {children}
+        {pageContent}
+        <CookieConsent />
       </body>
     </html>
   );

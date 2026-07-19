@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const footerFallback = {
   businessName: "AKC Oto Kılıf",
@@ -23,9 +24,14 @@ export default function SiteFooter({ settings = {} }) {
   const data = { ...footerFallback, ...settings };
 
   const businessName = data.footerTitle || data.businessName || "AKC Oto Kılıf";
-  const phoneDisplay = data.phone || footerFallback.phone;
+  const phoneDisplay = /000\s*00\s*00$/.test(data.phone || "")
+    ? footerFallback.phone
+    : data.phone || footerFallback.phone;
   const phoneHref = `tel:+${onlyDigits(phoneDisplay)}`;
-  const whatsappNumber = onlyDigits(data.whatsapp || data.phone);
+  const rawWhatsapp = onlyDigits(data.whatsapp || "");
+  const whatsappNumber = /0{6,}$/.test(rawWhatsapp)
+    ? footerFallback.whatsapp
+    : rawWhatsapp || onlyDigits(phoneDisplay);
   const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
   const emailHref = `mailto:${data.email || footerFallback.email}`;
 
@@ -56,7 +62,9 @@ export default function SiteFooter({ settings = {} }) {
 
       <div className="akc-footer-grid">
         <div className="akc-footer-brand">
-          <div className="akc-footer-mark">AKC</div>
+          <div className="akc-footer-mark">
+            <Image src="/images/akc-logo-square.png" alt="AKC Oto Kılıf logo" width={88} height={88} />
+          </div>
 
           <div>
             <strong>{businessName}</strong>
@@ -68,8 +76,8 @@ export default function SiteFooter({ settings = {} }) {
           <h3>Hızlı Bağlantılar</h3>
           <Link href="/">Ana Sayfa</Link>
           <Link href="/urunler">Ürünler</Link>
-          <Link href="/login">Giriş Yap</Link>
-          <Link href="/register">Üye Ol</Link>
+          <Link href="/#surec">Nasıl Çalışır?</Link>
+          <Link href="/#iletisim">Teklif Al</Link>
         </div>
 
         <div className="akc-footer-column">
@@ -99,7 +107,9 @@ export default function SiteFooter({ settings = {} }) {
           ) : null}
 
           <p>
-            {data.address || footerFallback.address}
+            {String(data.address || "").includes("eklenecek")
+              ? footerFallback.address
+              : data.address || footerFallback.address}
             <br />
             {data.workingHours || footerFallback.workingHours}
           </p>
@@ -110,9 +120,8 @@ export default function SiteFooter({ settings = {} }) {
         <span>{data.footerCopy || footerFallback.footerCopy}</span>
 
         <div>
-          <span>Premium oto kılıf</span>
-          <span>Profesyonel montaj</span>
-          <span>Hızlı teklif</span>
+          <Link href="/gizlilik">Gizlilik ve Çerezler</Link>
+          <Link href="/kvkk">KVKK Aydınlatma</Link>
         </div>
       </div>
     </footer>

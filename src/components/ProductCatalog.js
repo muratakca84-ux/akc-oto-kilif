@@ -13,10 +13,16 @@ import { db } from "@/lib/firebase";
 
 const fallbackSettings = {
   businessName: "AKC Oto Kılıf",
-  phone: "+90 500 000 00 00",
-  whatsapp: "905000000000",
+  phone: "+90 501 586 42 84",
+  whatsapp: "905015864284",
   email: "info@akcotokilif.com",
 };
+
+const fallbackProductImages = [
+  "/images/hero-premium-seat-covers.jpg",
+  "/images/seat-stitch-detail.jpg",
+  "/images/suv-seat-cover-installation.jpg",
+];
 
 const fallbackProducts = [
   {
@@ -223,23 +229,19 @@ export default function ProductCatalog({
       </div>
 
       <div className="product-grid">
-        {filteredProducts.map((product) => {
+        {filteredProducts.map((product, index) => {
           const price = getProductPricing(product);
+          const productImage =
+            product.imageUrl || fallbackProductImages[index % fallbackProductImages.length];
 
           return (
             <article
-              className={`product-card ${product.imageUrl ? "product-card--image" : ""}`}
+              className="product-card product-card--image"
               key={product.id || product.title}
             >
-              {product.imageUrl ? (
-                <div className="product-card__image">
-                  <img src={product.imageUrl} alt={product.title} loading="lazy" />
-                </div>
-              ) : (
-                <div className="product-card__image product-card__image--fallback">
-                  <span>AKC</span>
-                </div>
-              )}
+              <div className="product-card__image">
+                <img src={productImage} alt={product.title} loading="lazy" />
+              </div>
 
               <div className="product-card__body">
                 <span className="product-badge">

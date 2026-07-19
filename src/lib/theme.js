@@ -1,19 +1,19 @@
 export const themePresets = [
   {
     id: "classic",
-    name: "Altın Klasik",
-    description: "Premium koyu zemin ve altın vurgu ile klasik AKC hissi.",
+    name: "Kurumsal Aydınlık",
+    description: "Kırık beyaz zemin, güçlü lacivert metin ve ölçülü altın vurgu.",
     colors: {
-      themeBackground: "#070707",
-      themeForeground: "#f8f3ea",
-      themeMuted: "#b9b0a3",
-      themeAccent: "#d6a54b",
-      themeAccentSoft: "#f0d28a",
-      themeAccentDark: "#8f6420",
-      themeSurface: "#0b0a08",
-      themeLine: "rgba(255,255,255,0.12)",
-      themeLineStrong: "rgba(240,210,138,0.3)",
-      themeButtonText: "#171006",
+      themeBackground: "#f7f7f3",
+      themeForeground: "#172033",
+      themeMuted: "#687182",
+      themeAccent: "#b78635",
+      themeAccentSoft: "#ead7a9",
+      themeAccentDark: "#75551f",
+      themeSurface: "#ffffff",
+      themeLine: "rgba(23,32,51,0.11)",
+      themeLineStrong: "rgba(183,134,53,0.36)",
+      themeButtonText: "#ffffff",
     },
   },
   {
@@ -88,18 +88,18 @@ export const themePresets = [
 
 export const defaultThemeState = {
   themePreset: "classic",
-  themeName: "Altın Klasik",
-  themeDescription: "Premium görünüm ve güçlü marka hissi.",
-  themeBackground: "#070707",
-  themeForeground: "#f8f3ea",
-  themeMuted: "#b9b0a3",
+  themeName: "Kurumsal Aydınlık",
+  themeDescription: "Ferah, güven veren ve güçlü kurumsal görünüm.",
+  themeBackground: "#f7f7f3",
+  themeForeground: "#172033",
+  themeMuted: "#687182",
   themeAccent: "#d6a54b",
-  themeAccentSoft: "#f0d28a",
-  themeAccentDark: "#8f6420",
-  themeSurface: "#0b0a08",
-  themeLine: "rgba(255,255,255,0.12)",
-  themeLineStrong: "rgba(240,210,138,0.3)",
-  themeButtonText: "#171006",
+  themeAccentSoft: "#ead7a9",
+  themeAccentDark: "#75551f",
+  themeSurface: "#ffffff",
+  themeLine: "rgba(23,32,51,0.11)",
+  themeLineStrong: "rgba(183,134,53,0.36)",
+  themeButtonText: "#ffffff",
 };
 
 export function getPresetById(id) {
@@ -115,10 +115,23 @@ function safeValue(value, fallback) {
 }
 
 export function buildThemePalette(theme = {}) {
-  const resolved = {
+  let resolved = {
     ...defaultThemeState,
     ...theme,
   };
+
+  // Transparently migrate the original dark Classic palette for existing sites.
+  // Other presets and custom palettes remain untouched.
+  const usesLegacyClassic = resolved.themePreset === "classic";
+
+  if (usesLegacyClassic) {
+    resolved = {
+      ...resolved,
+      ...themePresets[0].colors,
+      themeName: themePresets[0].name,
+      themeDescription: themePresets[0].description,
+    };
+  }
 
   const background = safeValue(
     resolved.themeBackground,
@@ -178,11 +191,11 @@ export function buildThemePalette(theme = {}) {
     "--line": line,
     "--line-strong": lineStrong,
 
-    "--glass": "rgba(255, 255, 255, 0.065)",
-    "--glass-strong": "rgba(255, 255, 255, 0.105)",
+    "--glass": "rgba(255, 255, 255, 0.76)",
+    "--glass-strong": "rgba(255, 255, 255, 0.94)",
 
-    "--shadow-soft": "0 24px 80px rgba(0, 0, 0, 0.26)",
-    "--shadow-strong": "0 44px 120px rgba(0, 0, 0, 0.52)",
+    "--shadow-soft": "0 18px 55px rgba(23, 32, 51, 0.08)",
+    "--shadow-strong": "0 34px 90px rgba(23, 32, 51, 0.14)",
 
     "--accent": accent,
     "--accent-soft": accentSoft,
