@@ -1,4 +1,4 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://akcotokilif.com";
+import { safeJsonLd, SITE_URL } from "@/lib/seo";
 
 function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
@@ -39,6 +39,9 @@ export default function SeoStructuredData({ settings = {}, faqs = [] }) {
         },
         areaServed: ["Konya", "Karatay", "Meram", "Selçuklu"],
         openingHours: "Mo-Sa 09:00-19:00",
+        hasMap: settings.googleMapsUrl || "https://www.google.com/maps/search/?api=1&query=AKC+Oto+K%C4%B1l%C4%B1f+Karatay+Konya",
+        currenciesAccepted: "TRY",
+        paymentAccepted: "Cash, Credit Card",
         sameAs: settings.instagram ? [settings.instagram] : [],
       },
       {
@@ -66,7 +69,7 @@ export default function SeoStructuredData({ settings = {}, faqs = [] }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(graph) }}
     />
   );
 }

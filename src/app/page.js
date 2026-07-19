@@ -381,6 +381,7 @@ export default function Home() {
 
         <div className="nav-links" aria-label="Sayfa menüsü">
           <Link href="/urunler">Ürünler</Link>
+          <Link href="/hizmetler/konya-oto-kilif">Konya Oto Kılıf</Link>
           <Link href="#surec">Süreç</Link>
           <Link href="#galeri">Galeri</Link>
           <Link href="#kurumsal">Kurumsal</Link>

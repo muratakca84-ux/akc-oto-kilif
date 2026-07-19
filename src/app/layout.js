@@ -6,11 +6,10 @@ import AnalyticsScripts from "@/components/AnalyticsScripts";
 import CookieConsent from "@/components/CookieConsent";
 import ThemeProvider from "@/components/ThemeProvider";
 import ControlGate from "@/components/dromocob-control/control-gate";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://akcotokilif.com";
+import { SITE_URL } from "@/lib/seo";
 
 export const metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
 
   title: {
     default: "AKC Oto Kılıf | Aracınıza Özel Oto Kılıf ve Döşeme",
@@ -47,7 +46,7 @@ export const metadata = {
     title: "AKC Oto Kılıf | Aracınıza Özel Oto Kılıf",
     description:
       "Ölçülü dikim, premium görünüm ve profesyonel montaj ile aracınıza özel oto kılıf çözümleri.",
-    url: siteUrl,
+    url: SITE_URL,
     siteName: "AKC Oto Kılıf",
     locale: "tr_TR",
     type: "website",
@@ -63,6 +62,13 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 
   icons: {

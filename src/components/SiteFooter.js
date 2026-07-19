@@ -82,10 +82,10 @@ export default function SiteFooter({ settings = {} }) {
 
         <div className="akc-footer-column">
           <h3>Hizmet Alanları</h3>
-          <span>Özel dikim oto kılıf</span>
-          <span>Koltuk döşeme</span>
-          <span>Premium montaj</span>
-          <span>Filo ve ticari araç çözümleri</span>
+          <Link href="/hizmetler/konya-oto-kilif">Konya oto kılıf</Link>
+          <Link href="/hizmetler/araca-ozel-oto-kilif">Araca özel oto kılıf</Link>
+          <Link href="/hizmetler/oto-koltuk-doseme">Oto koltuk döşeme</Link>
+          <Link href="/hizmetler/ticari-arac-koltuk-kilifi">Ticari araç çözümleri</Link>
         </div>
 
         <div className="akc-footer-contact">
