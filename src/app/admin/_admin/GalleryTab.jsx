@@ -2,196 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-function getStatusLabel(isActive) {
-  return isActive ? "Yayında" : "Pasif";
-}
-
-function getStatusClass(isActive) {
-  return isActive ? "is-live" : "is-passive";
-}
-
-function getSafeTitle(value) {
-  return String(value || "").trim() || "Başlıksız galeri";
-}
-
-function GalleryForm({
-  galleryForm,
-  setGalleryForm,
-  galleryFile,
-  setGalleryFile,
-  saveGallery,
-  saving,
-  editingGalleryId,
-  resetGalleryForm,
-}) {
-  const hasPreview = Boolean(galleryForm.imageUrl || galleryFile);
-
-  function updateField(key, value) {
-    setGalleryForm({ ...galleryForm, [key]: value });
-  }
-
-  return (
-    <form className="gallery-manager-form" onSubmit={saveGallery}>
-      <div className="gallery-form-head">
-        <div>
-          <span>{editingGalleryId ? "Düzenleme modu" : "Yeni galeri kartı"}</span>
-          <h3>{editingGalleryId ? "Galeri kartını güncelle" : "Yeni görsel ekle"}</h3>
-          <p>
-            Montaj, detay, ürün, araç içi yenileme ve referans görsellerini
-            kurumsal galeri formatında yönetin.
-          </p>
-        </div>
-
-        {editingGalleryId ? (
-          <button className="admin-secondary-btn" type="button" onClick={resetGalleryForm}>
-            Düzenlemeyi iptal et
-          </button>
-        ) : null}
-      </div>
-
-      <div className="gallery-form-layout">
-        <div className="gallery-form-fields">
-          <label>
-            Başlık
-            <input
-              placeholder="Örn: Spor dikiş detaylı montaj"
-              value={galleryForm.title ?? ""}
-              onChange={(event) => updateField("title", event.target.value)}
-              required
-            />
-          </label>
-
-          <label>
-            Etiket
-            <input
-              placeholder="Örn: Montaj, Detay, Premium"
-              value={galleryForm.tag ?? ""}
-              onChange={(event) => updateField("tag", event.target.value)}
-            />
-          </label>
-
-          <label>
-            Sıralama
-            <input
-              type="number"
-              placeholder="10"
-              value={galleryForm.sortOrder ?? ""}
-              onChange={(event) => updateField("sortOrder", event.target.value)}
-            />
-          </label>
-
-          <label className="admin-check gallery-check">
-            <input
-              type="checkbox"
-              checked={Boolean(galleryForm.isActive)}
-              onChange={(event) => updateField("isActive", event.target.checked)}
-            />
-            Yayında göster
-          </label>
-
-          <label className="span-2">
-            Görsel URL
-            <input
-              placeholder="https://..."
-              value={galleryForm.imageUrl ?? ""}
-              onChange={(event) => updateField("imageUrl", event.target.value)}
-            />
-          </label>
-
-          <label className="file-input span-2 gallery-file-input">
-            <span>Galeri görseli yükle</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => setGalleryFile(event.target.files?.[0] || null)}
-            />
-            <em>{galleryFile?.name || "Dosya seçilmedi"}</em>
-          </label>
-
-          <button className="admin-primary-btn span-2" type="submit" disabled={saving}>
-            {saving
-              ? "Kaydediliyor..."
-              : editingGalleryId
-                ? "Galeri kartını güncelle"
-                : "Galeri kartı ekle"}
-          </button>
-        </div>
-
-        <div className="gallery-live-preview">
-          <span className="gallery-preview-label">Canlı önizleme</span>
-
-          <div className={hasPreview ? "gallery-preview-image has-image" : "gallery-preview-image"}>
-            {galleryForm.imageUrl ? (
-              <img src={galleryForm.imageUrl} alt="Galeri önizleme" />
-            ) : (
-              <strong>AKC</strong>
-            )}
-          </div>
-
-          <div className="gallery-preview-copy">
-            <small>{galleryForm.tag || "Montaj"} • Sıra {galleryForm.sortOrder || 10}</small>
-            <h4>{getSafeTitle(galleryForm.title)}</h4>
-            <span className={`gallery-status-pill ${getStatusClass(galleryForm.isActive)}`}>
-              {getStatusLabel(galleryForm.isActive)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-function GalleryCard({ item, editGallery, updateGallery, removeGallery }) {
-  const title = getSafeTitle(item.title);
-  const tag = item.tag || "Galeri";
-  const isActive = item.isActive !== false;
-
-  return (
-    <article className={`gallery-admin-card-v2 ${isActive ? "is-active" : "is-passive"}`}>
-      <div className="gallery-admin-image-v2">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt={title} />
-        ) : (
-          <div className="gallery-admin-fallback">
-            <strong>AKC</strong>
-            <span>Görsel yok</span>
-          </div>
-        )}
-
-        <span className={`gallery-status-pill ${getStatusClass(isActive)}`}>
-          {getStatusLabel(isActive)}
-        </span>
-      </div>
-
-      <div className="gallery-admin-body-v2">
-        <small>{tag} • Sıra {item.sortOrder || 0}</small>
-        <h3>{title}</h3>
-
-        <div className="gallery-card-meta">
-          <span>Vitrin kartı</span>
-          <span>{isActive ? "Ana sayfada görünür" : "Ana sayfada gizli"}</span>
-        </div>
-      </div>
-
-      <div className="gallery-actions-v2">
-        <button type="button" onClick={() => editGallery(item)}>
-          Düzenle
-        </button>
-
-        <button
-          type="button"
-          onClick={() => updateGallery(item.id, { isActive: !isActive })}
-        >
-          {isActive ? "Pasife al" : "Yayına al"}
-        </button>
-
-        <button className="danger" type="button" onClick={() => removeGallery(item.id)}>
-          Sil
-        </button>
-      </div>
-    </article>
-  );
-}
+import AdminIcon from "./AdminIcon";
+import { Card, Empty, Field, ImagePicker, PageHead, Toggle } from "./AdminUI";
 
 export default function GalleryTab({
   galleryItems,
@@ -207,73 +19,118 @@ export default function GalleryTab({
   updateGallery,
   removeGallery,
 }) {
+  const update = (key, value) => setGalleryForm((current) => ({ ...current, [key]: value }));
   const activeCount = galleryItems.filter((item) => item.isActive !== false).length;
-  const passiveCount = galleryItems.length - activeCount;
 
   return (
-    <section className="admin-panel gallery-manager-panel">
-      <div className="panel-head gallery-panel-head">
-        <div>
-          <p className="eyebrow">Galeri Yönetimi</p>
-          <h2>{editingGalleryId ? "Galeri kartını düzenle" : "Kurumsal galeri vitrini"}</h2>
-          <p>
-            Ana sayfadaki galeri alanını buradan yönet. Görsel yükle, sıralama
-            ver, yayına al veya pasife çek.
-          </p>
-        </div>
-
-        <div className="gallery-stats-mini">
-          <div>
-            <strong>{galleryItems.length}</strong>
-            <span>Toplam</span>
-          </div>
-          <div>
-            <strong>{activeCount}</strong>
-            <span>Yayında</span>
-          </div>
-          <div>
-            <strong>{passiveCount}</strong>
-            <span>Pasif</span>
-          </div>
-        </div>
-      </div>
-
-      <GalleryForm
-        galleryForm={galleryForm}
-        setGalleryForm={setGalleryForm}
-        galleryFile={galleryFile}
-        setGalleryFile={setGalleryFile}
-        saveGallery={saveGallery}
-        saving={saving}
-        editingGalleryId={editingGalleryId}
-        resetGalleryForm={resetGalleryForm}
+    <>
+      <PageHead
+        title="Galeri"
+        description="Ana sayfadaki “Uygulamalar” bölümünde sıralamaya göre ilk 6 yayındaki görsel gösterilir."
       />
 
-      <div className="gallery-section-title">
-        <div>
-          <span>Vitrin listesi</span>
-          <h3>Yüklenen galeri kartları</h3>
-        </div>
-        <p>En düşük sıra numarası önce görünür.</p>
-      </div>
-
-      {galleryItems.length === 0 ? (
-        <div className="empty-state gallery-empty-state">
-          Henüz galeri kartı yok. İlk görseli yukarıdaki alandan ekleyebilirsin.
-        </div>
-      ) : (
-        <div className="gallery-admin-grid-v2">
-          {galleryItems.map((item) => (
-            <GalleryCard
-              key={item.id}
-              item={item}
-              editGallery={editGallery}
-              updateGallery={updateGallery}
-              removeGallery={removeGallery}
+      <div className="adm-grid adm-grid--side">
+        <Card
+          title={editingGalleryId ? "Görseli düzenle" : "Yeni görsel"}
+          actions={
+            editingGalleryId ? (
+              <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={resetGalleryForm}>
+                Vazgeç
+              </button>
+            ) : null
+          }
+        >
+          <form className="adm-form adm-form--single" onSubmit={saveGallery}>
+            <ImagePicker
+              label="Görsel *"
+              url={galleryForm.imageUrl}
+              onUrlChange={(value) => update("imageUrl", value)}
+              file={galleryFile}
+              onFileChange={setGalleryFile}
+              hint="Yatay (4:3) fotoğraflar en iyi sonucu verir."
             />
-          ))}
-        </div>
-      )}
-    </section>
+            <Field label="Başlık *" hint="Görselin altında yazar. Örn. “Siyah deri, kırmızı dikiş”">
+              <input
+                className="adm-input"
+                value={galleryForm.title ?? ""}
+                onChange={(event) => update("title", event.target.value)}
+                required
+              />
+            </Field>
+            <div className="adm-form">
+              <Field label="Etiket">
+                <input
+                  className="adm-input"
+                  value={galleryForm.tag ?? ""}
+                  onChange={(event) => update("tag", event.target.value)}
+                  placeholder="Montaj, Detay, SUV…"
+                />
+              </Field>
+              <Field label="Sıralama">
+                <input
+                  className="adm-input"
+                  type="number"
+                  value={galleryForm.sortOrder ?? ""}
+                  onChange={(event) => update("sortOrder", event.target.value)}
+                />
+              </Field>
+            </div>
+            <Toggle checked={galleryForm.isActive} onChange={(value) => update("isActive", value)} label="Yayında" hint="Ana sayfada görünsün" />
+            <button className="adm-btn adm-btn--primary adm-btn--block" type="submit" disabled={saving}>
+              {saving ? "Kaydediliyor…" : editingGalleryId ? "Değişiklikleri kaydet" : "Galeriye ekle"}
+            </button>
+          </form>
+        </Card>
+
+        <Card title="Görseller" description={`${activeCount} yayında · ${galleryItems.length} toplam`}>
+          {galleryItems.length === 0 ? (
+            <Empty title="Galeri boş" text="İlk uygulama fotoğrafınızı soldaki formdan ekleyin." />
+          ) : (
+            <div className="adm-gallery">
+              {galleryItems.map((item) => {
+                const active = item.isActive !== false;
+                return (
+                  <article key={item.id} className={`adm-gallery-item ${editingGalleryId === item.id ? "is-editing" : ""}`}>
+                    <div className="adm-gallery-media">
+                      {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" /> : <AdminIcon name="image" size={28} />}
+                      <span className={`adm-badge adm-badge--${active ? "success" : "neutral"}`}>{active ? "Yayında" : "Pasif"}</span>
+                    </div>
+                    <div className="adm-gallery-body">
+                      <strong title={item.title}>{item.title || "Başlıksız"}</strong>
+                      <small>
+                        {item.tag || "—"} · Sıra {item.sortOrder ?? "—"}
+                      </small>
+                    </div>
+                    <div className="adm-gallery-actions">
+                      <button type="button" className="adm-icon-btn" onClick={() => editGallery(item)} aria-label="Düzenle" title="Düzenle">
+                        <AdminIcon name="edit" />
+                      </button>
+                      <button
+                        type="button"
+                        className="adm-icon-btn"
+                        onClick={() => updateGallery(item.id, { isActive: !active })}
+                        aria-label={active ? "Yayından kaldır" : "Yayına al"}
+                        title={active ? "Yayından kaldır" : "Yayına al"}
+                      >
+                        <AdminIcon name={active ? "eyeOff" : "eye"} />
+                      </button>
+                      <button
+                        type="button"
+                        className="adm-icon-btn adm-icon-btn--danger"
+                        onClick={() => removeGallery(item)}
+                        aria-label="Sil"
+                        title="Sil"
+                      >
+                        <AdminIcon name="trash" />
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      </div>
+    </>
   );
 }

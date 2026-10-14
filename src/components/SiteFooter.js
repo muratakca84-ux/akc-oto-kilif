@@ -1,128 +1,93 @@
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
 import Link from "next/link";
-import Image from "next/image";
+import Icon from "@/components/Icon";
+import { getContact } from "@/lib/site-config";
+import { SERVICE_PAGES } from "@/lib/seo";
+import { useSiteSettings } from "@/lib/use-site-settings";
 
-const footerFallback = {
-  businessName: "AKC Oto Kılıf",
-  footerTitle: "AKC Oto Kılıf",
-  footerDescription:
-    "Araç iç mekânında premium kalite, temiz montaj ve güven veren müşteri deneyimi.",
-  footerCopy: "© 2026 AKC Oto Kılıf. Tüm hakları saklıdır.",
-  phone: "+90 501 586 42 84",
-  whatsapp: "905015864284",
-  email: "info@akcotokilif.com",
-  address: "Hacıveyiszade, Fetih Cd. No:145 D:B, 42030 Karatay/Konya",
-  workingHours: "Hafta içi / Hafta Sonu: 11:00 - 18:00",
-  instagram: "https://www.instagram.com/akcotokilif/",
-  googleMapsUrl: "https://www.google.com/maps/place/AKC+Oto+K%C4%B1l%C4%B1f/@37.872099,32.481234,15z/data=!4m2!3m1!1s0x14c5c65d8f8f8f8f:0x1b1b1b1b1b1b1b1b?hl=tr",
-};
-
-function onlyDigits(value) {
-  return String(value || "").replace(/\D/g, "");
-}
-
-export default function SiteFooter({ settings = {} }) {
-  const data = { ...footerFallback, ...settings };
-
-  const businessName = data.footerTitle || data.businessName || "AKC Oto Kılıf";
-  const phoneDisplay = /000\s*00\s*00$/.test(data.phone || "")
-    ? footerFallback.phone
-    : data.phone || footerFallback.phone;
-  const phoneHref = `tel:+${onlyDigits(phoneDisplay)}`;
-  const rawWhatsapp = onlyDigits(data.whatsapp || "");
-  const whatsappNumber = /0{6,}$/.test(rawWhatsapp)
-    ? footerFallback.whatsapp
-    : rawWhatsapp || onlyDigits(phoneDisplay);
-  const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
-  const emailHref = `mailto:${data.email || footerFallback.email}`;
+export default function SiteFooter() {
+  const settings = useSiteSettings();
+  const contact = getContact(settings);
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="akc-footer">
-      <div className="akc-footer-glow" />
-
-      <div className="akc-footer-top">
+    <footer className="site-footer">
+      <div className="container footer-cta">
         <div>
-          <p className="eyebrow">AKC Oto Kılıf</p>
-          <h2>Aracınız için premium iç mekân çözümleri.</h2>
-          <p>
-            Özel dikim oto kılıf, döşeme, montaj ve araç içi yenileme
-            süreçlerinde hızlı teklif ve profesyonel hizmet.
-          </p>
+          <h2>Aracınız için net fiyat alın.</h2>
+          <p>Marka, model ve yıl bilgisini paylaşın; en kısa sürede dönüş yapalım.</p>
         </div>
-
-        <div className="akc-footer-actions">
-          <a href={whatsappHref} target="_blank" rel="noreferrer" className="primary-btn">
-            WhatsApp Teklif Al
+        <div className="footer-cta-actions">
+          <a className="btn btn-primary" href={contact.whatsappHref()} target="_blank" rel="noreferrer">
+            <Icon name="whatsapp" size={18} /> WhatsApp
           </a>
-
-          <a href={phoneHref} className="secondary-btn">
-            Hemen Ara
+          <a className="btn btn-on-dark" href={contact.phoneHref}>
+            <Icon name="phone" size={18} /> {contact.phoneDisplay}
           </a>
         </div>
       </div>
 
-      <div className="akc-footer-grid">
-        <div className="akc-footer-brand">
-          <div className="akc-footer-mark">
-            <Image src="/images/akc-logo-square.png" alt="AKC Oto Kılıf logo" width={88} height={88} />
-          </div>
-
-          <div>
-            <strong>{businessName}</strong>
-            <p>{data.footerDescription || footerFallback.footerDescription}</p>
-          </div>
+      <div className="container footer-grid">
+        <div className="footer-brand">
+          <Link className="brand brand--footer" href="/">
+            <img className="brand-logo" src={settings.brandLogoUrl} alt="" width={44} height={44} />
+            <span className="brand-text">
+              <strong>{settings.footerTitle || settings.businessName}</strong>
+              <small>{settings.brandSubtitle}</small>
+            </span>
+          </Link>
+          <p>{settings.footerDescription}</p>
+          {contact.instagram ? (
+            <a className="footer-social" href={contact.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+              <Icon name="instagram" size={18} /> Instagram
+            </a>
+          ) : null}
         </div>
 
-        <div className="akc-footer-column">
-          <h3>Hızlı Bağlantılar</h3>
+        <div className="footer-col">
+          <h3>Kurumsal</h3>
           <Link href="/">Ana Sayfa</Link>
           <Link href="/urunler">Ürünler</Link>
-          <Link href="/#surec">Nasıl Çalışır?</Link>
-          <Link href="/#iletisim">Teklif Al</Link>
+          <Link href="/#surec">Çalışma Süreci</Link>
+          <Link href="/#galeri">Uygulamalar</Link>
+          <Link href="/#sss">Sık Sorulanlar</Link>
         </div>
 
-        <div className="akc-footer-column">
-          <h3>Hizmet Alanları</h3>
-          <Link href="/hizmetler/konya-oto-kilif">Konya oto kılıf</Link>
-          <Link href="/hizmetler/araca-ozel-oto-kilif">Araca özel oto kılıf</Link>
-          <Link href="/hizmetler/oto-koltuk-doseme">Oto koltuk döşeme</Link>
-          <Link href="/hizmetler/ticari-arac-koltuk-kilifi">Ticari araç çözümleri</Link>
+        <div className="footer-col">
+          <h3>Hizmetler</h3>
+          {SERVICE_PAGES.map((service) => (
+            <Link key={service.slug} href={`/hizmetler/${service.slug}`}>
+              {service.title}
+            </Link>
+          ))}
         </div>
 
-        <div className="akc-footer-contact">
+        <div className="footer-col footer-contact">
           <h3>İletişim</h3>
-
-          <a href={phoneHref}>Telefon: {phoneDisplay}</a>
-          <a href={emailHref}>{data.email || footerFallback.email}</a>
-
-          {data.googleMapsUrl ? (
-            <a href={data.googleMapsUrl} target="_blank" rel="noreferrer">
-              Haritada Gör
-            </a>
-          ) : null}
-
-          {data.instagram ? (
-            <a href={data.instagram} target="_blank" rel="noreferrer">
-              Instagram
-            </a>
-          ) : null}
-
-          <p>
-            {String(data.address || "").includes("eklenecek")
-              ? footerFallback.address
-              : data.address || footerFallback.address}
-            <br />
-            {data.workingHours || footerFallback.workingHours}
-          </p>
+          <a href={contact.phoneHref}>
+            <Icon name="phone" size={16} /> {contact.phoneDisplay}
+          </a>
+          <a href={contact.emailHref}>
+            <Icon name="mail" size={16} /> {contact.email}
+          </a>
+          <a href={contact.mapsUrl} target="_blank" rel="noreferrer">
+            <Icon name="pin" size={16} /> {contact.address}
+          </a>
+          <span>
+            <Icon name="clock" size={16} /> {contact.workingHours}
+          </span>
         </div>
       </div>
 
-      <div className="akc-footer-bottom">
-        <span>{data.footerCopy || footerFallback.footerCopy}</span>
-
-        <div>
-          <Link href="/gizlilik">Gizlilik ve Çerezler</Link>
-          <Link href="/kvkk">KVKK Aydınlatma</Link>
-        </div>
+      <div className="container footer-bottom">
+        <span>{settings.footerCopy || `© ${year} ${settings.businessName}. Tüm hakları saklıdır.`}</span>
+        <nav aria-label="Yasal bağlantılar">
+          <Link href="/kvkk">KVKK Aydınlatma Metni</Link>
+          <Link href="/gizlilik">Gizlilik ve Çerez Politikası</Link>
+        </nav>
       </div>
     </footer>
   );

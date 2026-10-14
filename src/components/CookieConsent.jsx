@@ -1,16 +1,26 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const STORAGE_KEY = "akc-analytics-consent";
 
-function updateGoogleConsent(value) {
-  if (typeof window === "undefined") return;
+function readChoice() {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) || "pending";
+  } catch {
+    return "pending";
+  }
+}
 
+function updateGoogleConsent(value) {
   window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function gtag() {
-    window.dataLayer.push(arguments);
-  };
+  window.gtag =
+    window.gtag ||
+    function gtag() {
+      window.dataLayer.push(arguments);
+    };
 
   window.gtag("consent", "update", {
     analytics_storage: value === "granted" ? "granted" : "denied",
@@ -21,44 +31,38 @@ function updateGoogleConsent(value) {
 }
 
 export default function CookieConsent() {
+  const pathname = usePathname();
   const [choice, setChoice] = useState("loading");
 
   useEffect(() => {
-    queueMicrotask(() => {
-      setChoice(window.localStorage.getItem(STORAGE_KEY) || "pending");
-    });
+    queueMicrotask(() => setChoice(readChoice()));
   }, []);
 
   function saveChoice(value) {
-    window.localStorage.setItem(STORAGE_KEY, value);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, value);
+    } catch {
+      // depolama kapalıysa tercih yalnızca bu oturum için geçerli olur
+    }
     updateGoogleConsent(value);
-    window.dispatchEvent(
-      new CustomEvent("akc-consent-updated", { detail: value })
-    );
+    window.dispatchEvent(new CustomEvent("akc-consent-updated", { detail: value }));
     setChoice(value);
   }
 
-  if (choice !== "pending") return null;
+  if (choice !== "pending" || pathname?.startsWith("/admin")) return null;
 
   return (
-    <aside className="cookie-consent" aria-label="Çerez tercihleri">
-      <div>
-        <strong>Gizliliğiniz bizim için önemli.</strong>
-        <p>
-          Zorunlu çerezler sitenin çalışmasını sağlar. Analitik çerezleri yalnızca
-          izninizle, siteyi geliştirmek için anonim kullanım verisi toplar.
-        </p>
-      </div>
-      <div className="cookie-consent-actions">
-        <button type="button" onClick={() => saveChoice("denied")}>
+    <aside className="cookie-bar" aria-label="Çerez tercihleri">
+      <p>
+        Sitenin çalışması için zorunlu çerezler kullanılır. Ziyaret istatistikleri yalnızca izninizle
+        toplanır. <Link href="/gizlilik">Ayrıntılar</Link>
+      </p>
+      <div className="cookie-bar-actions">
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => saveChoice("denied")}>
           Yalnızca zorunlu
         </button>
-        <button
-          className="cookie-consent-accept"
-          type="button"
-          onClick={() => saveChoice("granted")}
-        >
-          Analitiğe izin ver
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => saveChoice("granted")}>
+          Kabul et
         </button>
       </div>
     </aside>

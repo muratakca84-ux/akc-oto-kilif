@@ -1,247 +1,117 @@
-import Link from "next/link";
+"use client";
+
+import AdminIcon from "./AdminIcon";
+import { Card, Empty, PageHead, Stat } from "./AdminUI";
 import { formatDate } from "./admin.helpers";
+import { LEAD_STATUS } from "./LeadsTab";
 
-function getLeadStatusLabel(status) {
-  if (status === "done") return "Tamamlandı";
-  if (status === "contacted") return "Arandı";
-  if (status === "new") return "Yeni";
-  return status || "Yeni";
-}
+export default function OverviewTab({ counts, leads, products, setActiveTab }) {
+  const recentLeads = leads.slice(0, 6);
+  const missingImage = products.filter((item) => !item.imageUrl).length;
+  const passive = counts.products - counts.activeProducts;
 
-function getLeadStatusClass(status) {
-  if (status === "done") return "done";
-  if (status === "contacted") return "contacted";
-  return "new";
-}
-
-export default function OverviewTab({
-  products = [],
-  activeProducts = 0,
-  featuredProducts = 0,
-  openLeads = 0,
-  lastLead,
-}) {
-  const totalProducts = products.length;
-  const passiveProducts = Math.max(totalProducts - activeProducts, 0);
-  const activeRate =
-    totalProducts > 0 ? Math.round((activeProducts / totalProducts) * 100) : 0;
-
-  const stats = [
-    {
-      label: "Aktif ürün",
-      value: activeProducts,
-      text: `${totalProducts} toplam ürün / hizmet kartı`,
-      icon: "🧵",
-      tone: "success",
+  const tasks = [
+    counts.newLeads > 0 && {
+      text: `${counts.newLeads} yeni talep dönüş bekliyor`,
+      tab: "leads",
+      tone: "alert",
     },
-    {
-      label: "Öne çıkan",
-      value: featuredProducts,
-      text: "Vitrinde öne çıkarılan ürünler",
-      icon: "⭐",
-      tone: "gold",
-    },
-    {
-      label: "Açık talep",
-      value: openLeads,
-      text: "Dönüş bekleyen müşteri talebi",
-      icon: "📩",
-      tone: openLeads > 0 ? "warning" : "success",
-    },
-    {
-      label: "Yayın oranı",
-      value: `%${activeRate}`,
-      text: `${passiveProducts} pasif ürün bulunuyor`,
-      icon: "📈",
-      tone: "info",
-    },
-  ];
-
-  const quickActions = [
-    {
-      title: "Ana sayfa yönetimi",
-      text: "Hero, vitrin görseli, iletişim ve bölüm metinlerini güncelle.",
-      href: "#homepage",
-      icon: "🏠",
-    },
-    {
-      title: "Ürün vitrini",
-      text: "Ürün ekle, fiyat düzenle, görsel yükle ve yayına al.",
-      href: "#products",
-      icon: "🧵",
-    },
-    {
-      title: "Galeri yönetimi",
-      text: "Montaj ve uygulama görsellerini kurumsal vitrine ekle.",
-      href: "#gallery",
-      icon: "🖼️",
-    },
-    {
-      title: "Analitik kontrol",
-      text: "GA4, GTM, Meta Pixel ve dönüşüm takibini incele.",
-      href: "/admin/analytics",
-      icon: "📊",
-    },
-  ];
-
-  const checklist = [
-    {
-      title: "Ana sayfa içerikleri",
-      text: "Başlıklar, açıklamalar, CTA alanları ve iletişim bilgileri panelden yönetilir.",
-    },
-    {
-      title: "Ürün ve fiyat yönetimi",
-      text: "Ürün kartları, görseller, indirimli fiyat ve teklif metinleri güncellenir.",
-    },
-    {
-      title: "Galeri vitrini",
-      text: "Gerçek işçilik ve montaj görselleri siteye kurumsal görünüm kazandırır.",
-    },
-    {
-      title: "Müşteri talepleri",
-      text: "Teklif formlarından gelen talepler durumlarına göre takip edilir.",
-    },
-  ];
+    missingImage > 0 && { text: `${missingImage} ürünün görseli yok`, tab: "products", tone: "warn" },
+    counts.activeGallery < 3 && { text: "Galeride 3'ten az yayında görsel var", tab: "gallery", tone: "warn" },
+  ].filter(Boolean);
 
   return (
-    <section className="overview-dashboard">
-      <div className="overview-hero-panel">
-        <div>
-          <p className="eyebrow">Operasyon özeti</p>
-          <h2>AKC yönetim paneli aktif.</h2>
-          <p>
-            Ürün vitrini, müşteri talepleri, galeri görselleri, tema ve ana sayfa
-            içerikleri tek merkezden kontrol edilir.
-          </p>
-        </div>
+    <>
+      <PageHead title="Genel bakış" description="Talepler, katalog ve site içeriğinin güncel durumu." />
 
-        <div className="overview-hero-actions">
-          <Link className="admin-primary-btn" href="/" target="_blank">
-            Siteyi görüntüle
-          </Link>
-          <Link className="admin-secondary-btn" href="/admin/analytics">
-            Analitik ekranı
-          </Link>
-        </div>
+      <div className="adm-stats">
+        <Stat label="Açık talep" value={counts.openLeads} note={`${counts.newLeads} yeni`} tone={counts.newLeads ? "accent" : ""} />
+        <Stat label="Yayındaki ürün" value={counts.activeProducts} note={`${passive} pasif · ${counts.products} toplam`} />
+        <Stat label="Öne çıkan ürün" value={counts.featuredProducts} note="Katalogda işaretli" />
+        <Stat label="Galeri görseli" value={counts.activeGallery} note={`${counts.gallery} toplam`} />
       </div>
 
-      <div className="overview-stat-grid">
-        {stats.map((item) => (
-          <article className={`overview-stat-card ${item.tone}`} key={item.label}>
-            <div className="overview-stat-icon">{item.icon}</div>
-
-            <div>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <p>{item.text}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <div className="overview-main-grid">
-        <article className="admin-panel overview-panel overview-panel-large">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Hızlı aksiyonlar</p>
-              <h2>En çok kullanılan yönetim alanları</h2>
-              <p>Günlük kullanımda ihtiyaç duyulan ekranlara buradan hızlıca geç.</p>
-            </div>
-          </div>
-
-          <div className="overview-action-grid">
-            {quickActions.map((item) => (
-              <Link className="overview-action-card" href={item.href} key={item.title}>
-                <span>{item.icon}</span>
-                <strong>{item.title}</strong>
-                <p>{item.text}</p>
-              </Link>
-            ))}
-          </div>
-        </article>
-
-        <article className="admin-panel overview-panel">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Son müşteri talebi</p>
-              <h2>Hızlı takip</h2>
-              <p>En yeni talep burada görünür.</p>
-            </div>
-          </div>
-
-          {lastLead ? (
-            <div className="overview-lead-card">
-              <div className="overview-lead-top">
-                <span className={`lead-status ${getLeadStatusClass(lastLead.status)}`}>
-                  {getLeadStatusLabel(lastLead.status)}
-                </span>
-                <small>{formatDate(lastLead.createdAt)}</small>
-              </div>
-
-              <h3>{lastLead.name || "İsimsiz müşteri"}</h3>
-              <p>{lastLead.message || "Mesaj yok."}</p>
-
-              <div className="overview-lead-contact">
-                <strong>{lastLead.phone || lastLead.email || "İletişim bilgisi yok"}</strong>
-                {lastLead.vehicle ? <span>{lastLead.vehicle}</span> : null}
-              </div>
-            </div>
+      <div className="adm-grid adm-grid--main">
+        <Card
+          title="Son talepler"
+          actions={
+            <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setActiveTab("leads")}>
+              Tümünü gör <AdminIcon name="arrow" size={16} />
+            </button>
+          }
+          flush
+        >
+          {recentLeads.length === 0 ? (
+            <Empty title="Henüz talep yok" text="Sitedeki teklif formundan gelen talepler burada listelenir." />
           ) : (
-            <div className="empty-state overview-empty">
-              Henüz müşteri talebi yok. İletişim formundan gelen ilk kayıt burada
-              görünecek.
-            </div>
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Müşteri</th>
+                  <th className="adm-hide-sm">Araç</th>
+                  <th>Durum</th>
+                  <th className="adm-hide-sm">Tarih</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentLeads.map((lead) => {
+                  const status = LEAD_STATUS[lead.status] || LEAD_STATUS.new;
+                  return (
+                    <tr key={lead.id} className="is-clickable" onClick={() => setActiveTab("leads")}>
+                      <td>
+                        <strong>{lead.name || "İsimsiz"}</strong>
+                        <small>{lead.phone || lead.email || "—"}</small>
+                      </td>
+                      <td className="adm-hide-sm">{lead.vehicle || "—"}</td>
+                      <td>
+                        <span className={`adm-badge adm-badge--${status.tone}`}>{status.label}</span>
+                      </td>
+                      <td className="adm-hide-sm adm-nowrap">{formatDate(lead.createdAt)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
-        </article>
+        </Card>
+
+        <div className="adm-stack">
+          <Card title="Yapılacaklar">
+            {tasks.length === 0 ? (
+              <p className="adm-muted">Bekleyen bir iş yok.</p>
+            ) : (
+              <ul className="adm-tasks">
+                {tasks.map((task) => (
+                  <li key={task.text}>
+                    <button type="button" onClick={() => setActiveTab(task.tab)}>
+                      <span className={`adm-dot adm-dot--${task.tone}`} />
+                      {task.text}
+                      <AdminIcon name="arrow" size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="Hızlı işlemler">
+            <div className="adm-quick">
+              <button type="button" onClick={() => setActiveTab("products")}>
+                <AdminIcon name="box" /> Ürün ekle
+              </button>
+              <button type="button" onClick={() => setActiveTab("gallery")}>
+                <AdminIcon name="image" /> Görsel yükle
+              </button>
+              <button type="button" onClick={() => setActiveTab("homepage")}>
+                <AdminIcon name="settings" /> İletişim bilgileri
+              </button>
+              <button type="button" onClick={() => setActiveTab("analytics")}>
+                <AdminIcon name="chart" /> Analitik
+              </button>
+            </div>
+          </Card>
+        </div>
       </div>
-
-      <div className="overview-main-grid">
-        <article className="admin-panel overview-panel">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Panel sağlığı</p>
-              <h2>Sistem durumu</h2>
-              <p>Temel yönetim bölümleri hazır durumda.</p>
-            </div>
-          </div>
-
-          <div className="overview-health-list">
-            {checklist.map((item, index) => (
-              <div className="overview-health-item" key={item.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="admin-panel overview-panel overview-panel-accent">
-          <p className="eyebrow">AKC standardı</p>
-          <h2>İçerik düzeni güçlendikçe site daha kurumsal görünür.</h2>
-          <p>
-            Ürün fotoğraflarını düzenli yüklemek, açıklamaları net tutmak ve müşteri
-            taleplerini hızlı takip etmek markanın güven hissini artırır.
-          </p>
-
-          <div className="overview-mini-metrics">
-            <div>
-              <strong>{totalProducts}</strong>
-              <span>Toplam ürün</span>
-            </div>
-            <div>
-              <strong>{featuredProducts}</strong>
-              <span>Vitrin ürünü</span>
-            </div>
-            <div>
-              <strong>{openLeads}</strong>
-              <span>Bekleyen talep</span>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
+    </>
   );
 }

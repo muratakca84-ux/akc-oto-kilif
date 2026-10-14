@@ -1,275 +1,171 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useMemo, useState } from "react";
-import {
-  collection,
-  doc,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Icon from "@/components/Icon";
+import { trackEvent } from "@/lib/analytics";
+import { getProductPricing } from "@/lib/pricing";
+import { getContact } from "@/lib/site-config";
+import { useSiteSettings } from "@/lib/use-site-settings";
 
-const fallbackSettings = {
-  businessName: "AKC Oto Kılıf",
-  phone: "+90 501 586 42 84",
-  whatsapp: "905015864284",
-  email: "info@akcotokilif.com",
-};
-
-const fallbackProductImages = [
+const FALLBACK_IMAGES = [
   "/images/hero-premium-seat-covers.jpg",
   "/images/seat-stitch-detail.jpg",
   "/images/suv-seat-cover-installation.jpg",
 ];
 
-const fallbackProducts = [
+const FALLBACK_PRODUCTS = [
   {
-    title: "Premium Deri Kılıf",
+    title: "Deri Görünümlü Araca Özel Kılıf",
     category: "Binek Araç",
-    material: "Deri Görünümlü",
-    priceText: "Teklif alınız",
-    description:
-      "Araç modeliyle uyumlu, premium görünüm sunan özel dikim kılıf çözümü.",
-    imageUrl: "",
+    material: "Deri görünümlü",
+    description: "Model uyumlu kesim, kolay temizlenen yüzey ve kontrast dikiş seçenekleriyle günlük kullanıma uygun kılıf.",
   },
   {
-    title: "Spor Dikişli Koltuk Döşeme",
+    title: "Kumaş + Deri Kombin Döşeme",
     category: "SUV",
-    material: "Kumaş + Deri",
-    priceText: "Teklif alınız",
-    description:
-      "İç mekâna karakter katan, detay odaklı ve dayanıklı döşeme seçeneği.",
-    imageUrl: "",
+    material: "Kumaş + deri",
+    description: "Nefes alan kumaş orta bölge ve dayanıklı deri yanaklarla konforlu, uzun ömürlü döşeme.",
   },
   {
-    title: "Filo Araçları İçin Dayanıklı Çözüm",
-    category: "Filo",
-    material: "Dayanıklı Kumaş",
-    priceText: "Teklif alınız",
-    description:
-      "Yoğun kullanıma uygun, kolay temizlenebilir ve uzun ömürlü üretim.",
-    imageUrl: "",
+    title: "Filo Tipi Dayanıklı Kılıf",
+    category: "Filo Araçları",
+    material: "Dayanıklı kumaş",
+    description: "Taksi, servis ve ticari araçlarda yoğun kullanıma dayanıklı, kolay bakımlı çözüm.",
   },
 ];
 
-function onlyDigits(value) {
-  return String(value || "").replace(/\D/g, "");
-}
-
-function formatPrice(value, currency = "TRY") {
-  const number = Number(value);
-
-  if (!Number.isFinite(number) || number <= 0) {
-    return "";
-  }
-
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(number);
-}
-
-function getProductPricing(product) {
-  const currency = product?.currency || "TRY";
-  const note = String(product?.priceText || "").trim();
-
-  if (product?.showPrice === false) {
-    return {
-      oldText: "",
-      finalText: note || "Teklif alınız",
-      note: "",
-    };
-  }
-
-  const normalPrice = formatPrice(product?.priceAmount, currency);
-  const discountPrice = formatPrice(product?.discountPriceAmount, currency);
-
-  if (discountPrice) {
-    return {
-      oldText: normalPrice,
-      finalText: discountPrice,
-      note: note && note !== "Teklif alınız" ? note : "",
-    };
-  }
-
-  if (normalPrice) {
-    return {
-      oldText: "",
-      finalText: normalPrice,
-      note: note && note !== "Teklif alınız" ? note : "",
-    };
-  }
-
-  return {
-    oldText: "",
-    finalText: note || "Teklif alınız",
-    note: "",
-  };
-}
-
-export default function ProductCatalog({
-  title = "Premium ürünler",
-  description = "Araç tipinize uygun özel üretim kılıf ve döşeme çözümlerini keşfedin.",
-}) {
-  const [settings, setSettings] = useState(fallbackSettings);
-  const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tümü");
+export default function ProductCatalog() {
+  const contact = getContact(useSiteSettings());
+  const [products, setProducts] = useState(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("Tümü");
 
   useEffect(() => {
-    const unsubSettings = onSnapshot(doc(db, "settings", "site"), (snapshot) => {
-      if (snapshot.exists()) {
-        setSettings({ ...fallbackSettings, ...snapshot.data() });
-      }
-    });
-
-    const productQuery = query(
-      collection(db, "products"),
-      orderBy("sortOrder", "asc"),
-      limit(100)
+    const productQuery = query(collection(db, "products"), orderBy("sortOrder", "asc"), limit(100));
+    return onSnapshot(
+      productQuery,
+      (snapshot) =>
+        setProducts(
+          snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((item) => item.isActive !== false)
+        ),
+      () => setProducts([])
     );
-
-    const unsubProducts = onSnapshot(productQuery, (snapshot) => {
-      const data = snapshot.docs
-        .map((item) => ({ id: item.id, ...item.data() }))
-        .filter((item) => item.isActive !== false);
-
-      setProducts(data);
-    });
-
-    return () => {
-      unsubSettings();
-      unsubProducts();
-    };
   }, []);
 
-  const displayProducts = useMemo(
-    () => (products.length ? products : fallbackProducts),
-    [products]
+  const list = useMemo(() => (products && products.length ? products : FALLBACK_PRODUCTS), [products]);
+
+  const categories = useMemo(
+    () => ["Tümü", ...Array.from(new Set(list.map((item) => item.category).filter(Boolean)))],
+    [list]
   );
 
-  const categories = useMemo(() => {
-    const values = displayProducts
-      .map((product) => product.category)
-      .filter(Boolean);
-
-    return ["Tümü", ...Array.from(new Set(values))];
-  }, [displayProducts]);
-
-  const filteredProducts = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-
-    return displayProducts.filter((product) => {
-      const matchesCategory =
-        selectedCategory === "Tümü" || product.category === selectedCategory;
-      const haystack = [
-        product.title,
-        product.description,
-        product.text,
-        product.material,
-        product.category,
-      ]
+  const filtered = useMemo(() => {
+    const q = search.trim().toLocaleLowerCase("tr");
+    return list.filter((product) => {
+      if (category !== "Tümü" && product.category !== category) return false;
+      if (!q) return true;
+      return [product.title, product.description, product.material, product.category]
         .filter(Boolean)
         .join(" ")
-        .toLowerCase();
-
-      const matchesQuery = !query || haystack.includes(query);
-      return matchesCategory && matchesQuery;
+        .toLocaleLowerCase("tr")
+        .includes(q);
     });
-  }, [displayProducts, searchTerm, selectedCategory]);
+  }, [list, search, category]);
 
-  const handleOrder = (product) => {
-    const whatsappNumber = onlyDigits(settings.whatsapp || settings.phone);
+  function whatsappFor(product) {
     const price = getProductPricing(product);
-    const message = [
-      `Merhaba, ${product.title || "ürün"} ürününü sipariş etmek istiyorum.`,
+    const lines = [
+      `Merhaba, "${product.title || "ürün"}" hakkında bilgi ve teklif almak istiyorum.`,
       product.category ? `Kategori: ${product.category}` : "",
       product.material ? `Malzeme: ${product.material}` : "",
-      price.finalText ? `Fiyat: ${price.finalText}` : "",
-      "Lütfen bana dönüş yapın.",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(href, "_blank", "noopener,noreferrer");
-  };
+      price.hasRealPrice ? `Listelenen fiyat: ${price.finalText}` : "",
+      "Aracım: ",
+    ];
+    return contact.whatsappHref(lines.filter(Boolean).join("\n"));
+  }
 
   return (
-    <section className="products-panel">
-      <div className="section-head section-head--centered">
-        <p className="eyebrow">Ürünler</p>
-        <h2>{title}</h2>
-        <p>{description}</p>
-      </div>
-
+    <div className="catalog">
       <div className="catalog-toolbar">
-        <label className="catalog-search">
-          <span>Ürün ara</span>
+        <div className="chips" role="tablist" aria-label="Kategori">
+          {categories.map((item) => (
+            <button
+              key={item}
+              type="button"
+              role="tab"
+              aria-selected={category === item}
+              className={`chip ${category === item ? "is-active" : ""}`}
+              onClick={() => setCategory(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        <label className="search-field">
+          <span className="sr-only">Ürün ara</span>
           <input
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Başlık, malzeme veya kategori"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Ürün, malzeme veya kategori ara"
           />
         </label>
-
-        <label className="catalog-filter">
-          <span>Kategori</span>
-          <select value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)}>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
 
-      <div className="product-grid">
-        {filteredProducts.map((product, index) => {
-          const price = getProductPricing(product);
-          const productImage =
-            product.imageUrl || fallbackProductImages[index % fallbackProductImages.length];
-
-          return (
-            <article
-              className="product-card product-card--image"
-              key={product.id || product.title}
-            >
-              <div className="product-card__image">
-                <img src={productImage} alt={product.title} loading="lazy" />
-              </div>
-
-              <div className="product-card__body">
-                <span className="product-badge">
-                  {product.category || "Özel Üretim"}
-                </span>
-
-                <h3>{product.title}</h3>
-                <p>{product.description || product.text}</p>
-
-                <div className="product-meta">
-                  <span>{product.material || "Özel ölçü"}</span>
-                  <span>{product.variant || "Premium kalite"}</span>
+      {products === null ? (
+        <p className="catalog-empty">Ürünler yükleniyor…</p>
+      ) : filtered.length === 0 ? (
+        <p className="catalog-empty">Aramanıza uygun ürün bulunamadı.</p>
+      ) : (
+        <div className="product-grid">
+          {filtered.map((product, index) => {
+            const price = getProductPricing(product);
+            return (
+              <article className="product-card" key={product.id || product.title}>
+                <div className="product-media">
+                  <img
+                    src={product.imageUrl || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}
+                    alt={product.title || "Ürün görseli"}
+                    loading="lazy"
+                  />
+                  {product.isFeatured ? <span className="product-flag">Öne çıkan</span> : null}
                 </div>
-
-                <div className="product-price-box">
-                  <span className="product-price-label">Fiyat</span>
-                  <strong className="product-price">{price.finalText}</strong>
-                  {price.note ? <small>{price.note}</small> : null}
+                <div className="product-body">
+                  <span className="product-category">{product.category || "Özel üretim"}</span>
+                  <h3>{product.title}</h3>
+                  {product.description ? <p>{product.description}</p> : null}
+                  {product.material ? (
+                    <dl className="product-spec">
+                      <dt>Malzeme</dt>
+                      <dd>{product.material}</dd>
+                    </dl>
+                  ) : null}
+                  <div className="product-footer">
+                    <div className="product-price">
+                      {price.oldText ? <del>{price.oldText}</del> : null}
+                      <strong>{price.finalText}</strong>
+                      {price.note ? <small>{price.note}</small> : null}
+                    </div>
+                    <a
+                      className="btn btn-primary btn-sm"
+                      href={whatsappFor(product)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackEvent("product_inquiry", { product_title: product.title || "" })}
+                    >
+                      <Icon name="whatsapp" size={16} /> Bilgi al
+                    </a>
+                  </div>
                 </div>
-
-                <button type="button" className="order-btn" onClick={() => handleOrder(product)}>
-                  Hemen Sipariş Ver
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    </section>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

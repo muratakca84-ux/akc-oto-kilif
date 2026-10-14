@@ -1,4 +1,4 @@
-import Link from "next/link";
+import LegalLayout from "@/components/LegalLayout";
 
 export const metadata = {
   title: "Gizlilik ve Çerez Politikası",
@@ -8,12 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="legal-page site-shell">
-      <Link href="/">← Ana sayfaya dön</Link>
-      <p className="eyebrow">Yasal bilgilendirme</p>
-      <h1>Gizlilik ve Çerez Politikası</h1>
-      <p>Son güncelleme: 19 Temmuz 2026</p>
-      <section>
+    <LegalLayout eyebrow="Yasal bilgilendirme" title="Gizlilik ve Çerez Politikası" updated="19 Temmuz 2026">
         <h2>Toplanan bilgiler</h2>
         <p>
           Teklif formunda paylaştığınız ad, telefon, e-posta, araç ve mesaj bilgileri
@@ -32,10 +27,9 @@ export default function PrivacyPage() {
         </p>
         <h2>İletişim</h2>
         <p>
-          Gizlilik talepleriniz için <a href="mailto:info@akcotokilif.com">info@akcotokilif.com</a>
+          Gizlilik talepleriniz için{" "}<a href="mailto:info@akcotokilif.com">info@akcotokilif.com</a>{" "}
           adresinden bize ulaşabilirsiniz.
         </p>
-      </section>
-    </main>
+    </LegalLayout>
   );
 }

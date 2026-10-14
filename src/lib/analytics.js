@@ -16,5 +16,9 @@ export function trackEvent(eventName, parameters = {}) {
 
 export function getAnalyticsConsent() {
   if (typeof window === "undefined") return "pending";
-  return window.localStorage.getItem("akc-analytics-consent") || "pending";
+  try {
+    return window.localStorage.getItem("akc-analytics-consent") || "pending";
+  } catch {
+    return "pending";
+  }
 }

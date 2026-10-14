@@ -1,3 +1,4 @@
+import "./control.css";
 import { getControlStatus } from "@/lib/dromocob-control";
 
 import MaintenanceScreen from "./maintenance-screen";

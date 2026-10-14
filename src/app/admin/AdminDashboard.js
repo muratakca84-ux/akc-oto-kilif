@@ -1,8 +1,7 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
@@ -22,9 +21,8 @@ import {
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 import { auth, db, storage } from "@/lib/firebase";
-import { buildThemePalette } from "@/lib/theme";
 
-import AdminShell from "./_admin/AdminShell";
+import AdminShell, { ADMIN_TABS } from "./_admin/AdminShell";
 import OverviewTab from "./_admin/OverviewTab";
 import ThemesTab from "./_admin/ThemesTab";
 import HomepageTab from "./_admin/HomepageTab";
@@ -33,12 +31,8 @@ import GalleryTab from "./_admin/GalleryTab";
 import LeadsTab from "./_admin/LeadsTab";
 import AnalyticsTab from "./_admin/AnalyticsTab";
 
-import {
-  defaultSettings,
-  emptyGallery,
-  emptyProduct,
-} from "./_admin/admin.constants";
-
+import { compressImage } from "./_admin/compress-image";
+import { defaultSettings, emptyGallery, emptyProduct } from "./_admin/admin.constants";
 import {
   buildDraft,
   cleanObjectForEdit,
@@ -48,14 +42,13 @@ import {
   textToFaqs,
 } from "./_admin/admin.helpers";
 
-function applyThemeToDocument(themeState = {}) {
-  const palette = buildThemePalette(themeState);
+const TAB_KEYS = ADMIN_TABS.map((tab) => tab.key);
+const MAX_UPLOAD = 20 * 1024 * 1024;
 
-  Object.entries(palette).forEach(([key, value]) => {
-    document.documentElement.style.setProperty(key, value);
-  });
-
-  document.documentElement.dataset.theme = themeState.themePreset || "classic";
+function numberOrNull(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
 export default function AdminDashboard() {
@@ -63,22 +56,18 @@ export default function AdminDashboard() {
 
   const [authState, setAuthState] = useState("loading");
   const [adminProfile, setAdminProfile] = useState(null);
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window === "undefined") return "overview";
-    const requestedTab = window.location.hash.replace("#", "");
-    const availableTabs = ["overview", "themes", "homepage", "products", "gallery", "leads", "analytics"];
-    return availableTabs.includes(requestedTab) ? requestedTab : "overview";
-  });
+  const [activeTab, setActiveTabState] = useState("overview");
 
   const [products, setProducts] = useState([]);
   const [galleryItems, setGalleryItems] = useState([]);
   const [leads, setLeads] = useState([]);
 
-  const [settingsDraft, setSettingsDraft] = useState(buildDraft(defaultSettings));
+  const [settingsDraft, setSettingsDraft] = useState(() => buildDraft(defaultSettings));
+  const [settingsDirty, setSettingsDirty] = useState(false);
+  const dirtyRef = useRef(false);
 
   const [productForm, setProductForm] = useState(emptyProduct);
   const [galleryForm, setGalleryForm] = useState(emptyGallery);
-
   const [editingProductId, setEditingProductId] = useState("");
   const [editingGalleryId, setEditingGalleryId] = useState("");
 
@@ -89,60 +78,60 @@ export default function AdminDashboard() {
   const [showcaseFile, setShowcaseFile] = useState(null);
 
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(0);
 
-  const activeProducts = useMemo(
-    () => products.filter((product) => product.isActive !== false).length,
-    [products]
-  );
-
-  const featuredProducts = useMemo(
-    () => products.filter((product) => product.isFeatured).length,
-    [products]
-  );
-
-  const openLeads = useMemo(
-    () => leads.filter((lead) => lead.status !== "done").length,
-    [leads]
-  );
-
-  const lastLead = useMemo(() => leads[0], [leads]);
-
-  const showToast = useCallback((text) => {
-    setToast(text);
-    window.clearTimeout(window.__akcToastTimer);
-    window.__akcToastTimer = window.setTimeout(() => setToast(""), 3600);
+  const showToast = useCallback((text, tone = "success") => {
+    setToast({ text, tone });
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 4000);
   }, []);
 
-  async function uploadImageFile(file, folder) {
-    if (!file) return "";
+  const showError = useCallback((error, fallback) => showToast(error?.message || fallback, "error"), [showToast]);
 
-    if (!file.type.startsWith("image/")) {
-      throw new Error("Sadece görsel dosyası yükleyebilirsin.");
+  /* ---------- Sekme ↔ URL hash ---------- */
+
+  const setActiveTab = useCallback((key) => {
+    if (!TAB_KEYS.includes(key)) return;
+    setActiveTabState(key);
+    if (window.location.hash !== `#${key}`) {
+      window.history.replaceState(null, "", `#${key}`);
     }
-
-    const maxSize = 8 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      throw new Error("Görsel boyutu 8 MB altında olmalı.");
-    }
-
-    const fileRef = ref(
-      storage,
-      `public/${folder}/${Date.now()}-${safeFileName(file.name)}`
-    );
-
-    await uploadBytes(fileRef, file);
-
-    return getDownloadURL(fileRef);
-  }
+    window.scrollTo({ top: 0 });
+  }, []);
 
   useEffect(() => {
-    applyThemeToDocument(settingsDraft);
-  }, [settingsDraft]);
+    function syncFromHash() {
+      const key = window.location.hash.replace("#", "");
+      if (TAB_KEYS.includes(key)) setActiveTabState(key);
+    }
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
+  }, []);
+
+  /* ---------- Ayar taslağı ---------- */
+
+  const updateSettings = useCallback((updater) => {
+    dirtyRef.current = true;
+    setSettingsDirty(true);
+    setSettingsDraft((current) => (typeof updater === "function" ? updater(current) : updater));
+  }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!settingsDirty) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [settingsDirty]);
+
+  /* ---------- Yetki ---------- */
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setAuthState("guest");
         router.replace("/login");
@@ -151,119 +140,83 @@ export default function AdminDashboard() {
 
       try {
         const adminSnap = await getDoc(doc(db, "admins", user.uid));
+        const adminData = adminSnap.exists() ? adminSnap.data() : null;
 
-        if (!adminSnap.exists()) {
+        if (!adminData || adminData.isActive === false) {
           setAuthState("blocked");
           return;
         }
 
-        const adminData = adminSnap.data();
-
-        if (adminData?.isActive === false) {
-          setAuthState("blocked");
-          return;
-        }
-
-        setAdminProfile({
-          uid: user.uid,
-          email: user.email,
-          ...adminData,
-        });
-
+        setAdminProfile({ uid: user.uid, email: user.email, ...adminData });
         setAuthState("admin");
-      } catch (error) {
+      } catch {
         setAuthState("blocked");
-        showToast(error?.message || "Admin yetkisi kontrol edilemedi.");
       }
     });
+  }, [router]);
 
-    return () => unsubscribe();
-  }, [router, showToast]);
+  /* ---------- Veriler ---------- */
 
   useEffect(() => {
     if (authState !== "admin") return undefined;
 
-    const productQuery = query(
-      collection(db, "products"),
-      orderBy("sortOrder", "asc"),
-      limit(150)
-    );
+    const listen = (q, setter, label) =>
+      onSnapshot(
+        q,
+        (snapshot) => setter(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))),
+        (error) => showError(error, `${label} okunamadı.`)
+      );
 
-    const galleryQuery = query(
-      collection(db, "gallery"),
-      orderBy("sortOrder", "asc"),
-      limit(150)
-    );
+    const unsubscribers = [
+      listen(query(collection(db, "products"), orderBy("sortOrder", "asc"), limit(200)), setProducts, "Ürünler"),
+      listen(query(collection(db, "gallery"), orderBy("sortOrder", "asc"), limit(200)), setGalleryItems, "Galeri"),
+      listen(query(collection(db, "leads"), orderBy("createdAt", "desc"), limit(200)), setLeads, "Talepler"),
+      onSnapshot(
+        doc(db, "settings", "site"),
+        (snapshot) => {
+          // Kaydedilmemiş düzenlemeler varken gelen güncellemeler taslağı ezmesin.
+          if (dirtyRef.current) return;
+          setSettingsDraft(buildDraft(snapshot.exists() ? snapshot.data() : {}));
+        },
+        (error) => showError(error, "Site ayarları okunamadı.")
+      ),
+    ];
 
-    const leadsQuery = query(
-      collection(db, "leads"),
-      orderBy("createdAt", "desc"),
-      limit(80)
-    );
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  }, [authState, showError]);
 
-    const unsubProducts = onSnapshot(
-      productQuery,
-      (snapshot) => {
-        setProducts(
-          snapshot.docs.map((item) => ({
-            id: item.id,
-            ...item.data(),
-          }))
-        );
-      },
-      (error) => showToast(error?.message || "Ürünler okunamadı.")
-    );
+  const counts = useMemo(
+    () => ({
+      products: products.length,
+      activeProducts: products.filter((item) => item.isActive !== false).length,
+      featuredProducts: products.filter((item) => item.isFeatured).length,
+      gallery: galleryItems.length,
+      activeGallery: galleryItems.filter((item) => item.isActive !== false).length,
+      openLeads: leads.filter((item) => item.status !== "done").length,
+      newLeads: leads.filter((item) => !item.status || item.status === "new").length,
+    }),
+    [products, galleryItems, leads]
+  );
 
-    const unsubGallery = onSnapshot(
-      galleryQuery,
-      (snapshot) => {
-        setGalleryItems(
-          snapshot.docs.map((item) => ({
-            id: item.id,
-            ...item.data(),
-          }))
-        );
-      },
-      (error) => showToast(error?.message || "Galeri okunamadı.")
-    );
+  /* ---------- Yardımcılar ---------- */
 
-    const unsubLeads = onSnapshot(
-      leadsQuery,
-      (snapshot) => {
-        setLeads(
-          snapshot.docs.map((item) => ({
-            id: item.id,
-            ...item.data(),
-          }))
-        );
-      },
-      (error) => showToast(error?.message || "Talepler okunamadı.")
-    );
+  async function uploadImageFile(file, folder) {
+    if (!file) return "";
+    if (!file.type.startsWith("image/")) throw new Error("Yalnızca görsel dosyası yüklenebilir.");
+    if (file.size > MAX_UPLOAD) throw new Error("Görsel boyutu 20 MB'tan küçük olmalı.");
 
-    const unsubSettings = onSnapshot(
-      doc(db, "settings", "site"),
-      (snapshot) => {
-        const nextSettings = snapshot.exists()
-          ? { ...defaultSettings, ...snapshot.data() }
-          : defaultSettings;
-
-        setSettingsDraft(buildDraft(nextSettings));
-      },
-      (error) => showToast(error?.message || "Site ayarları okunamadı.")
-    );
-
-    return () => {
-      unsubProducts();
-      unsubGallery();
-      unsubLeads();
-      unsubSettings();
-    };
-  }, [authState, showToast]);
+    const optimized = await compressImage(file);
+    const fileRef = ref(storage, `public/${folder}/${Date.now()}-${safeFileName(optimized.name)}`);
+    await uploadBytes(fileRef, optimized, { contentType: optimized.type });
+    return getDownloadURL(fileRef);
+  }
 
   async function handleLogout() {
     await signOut(auth);
     router.replace("/login");
   }
+
+  /* ---------- Ürünler ---------- */
 
   function resetProductForm() {
     setEditingProductId("");
@@ -271,44 +224,39 @@ export default function AdminDashboard() {
     setProductFile(null);
   }
 
-  function resetGalleryForm() {
-    setEditingGalleryId("");
-    setGalleryForm(emptyGallery);
-    setGalleryFile(null);
+  function editProduct(product) {
+    setEditingProductId(product.id);
+    setProductForm(cleanObjectForEdit(product, emptyProduct));
+    setProductFile(null);
   }
 
-  async function saveProduct(event) {
-    event.preventDefault();
+  async function saveProduct() {
+    const title = String(productForm.title || "").trim();
+    if (!title) {
+      showToast("Ürün adı zorunludur.", "error");
+      return false;
+    }
 
-    if (!String(productForm.title || "").trim()) {
-      showToast("Ürün başlığı zorunludur.");
+    const priceAmount = numberOrNull(productForm.priceAmount);
+    const discountPriceAmount = numberOrNull(productForm.discountPriceAmount);
+    if (discountPriceAmount !== null && priceAmount !== null && discountPriceAmount >= priceAmount) {
+      showToast("İndirimli fiyat normal fiyattan düşük olmalı.", "error");
       return false;
     }
 
     setSaving(true);
-
     try {
       const uploadedUrl = await uploadImageFile(productFile, "products");
-      const finalImageUrl = uploadedUrl || String(productForm.imageUrl || "").trim();
-
       const payload = {
-        ...productForm,
-        title: String(productForm.title || "").trim(),
+        title,
         category: String(productForm.category || "").trim(),
         material: String(productForm.material || "").trim(),
-        priceAmount:
-          productForm.priceAmount !== "" && productForm.priceAmount !== null
-            ? Number(productForm.priceAmount)
-            : null,
-        discountPriceAmount:
-          productForm.discountPriceAmount !== "" &&
-          productForm.discountPriceAmount !== null
-            ? Number(productForm.discountPriceAmount)
-            : null,
+        priceAmount,
+        discountPriceAmount,
         currency: productForm.currency || "TRY",
         priceText: String(productForm.priceText || "").trim(),
         showPrice: Boolean(productForm.showPrice),
-        imageUrl: finalImageUrl,
+        imageUrl: uploadedUrl || String(productForm.imageUrl || "").trim(),
         description: String(productForm.description || "").trim(),
         sortOrder: safeNumber(productForm.sortOrder, 10),
         isActive: Boolean(productForm.isActive),
@@ -318,77 +266,75 @@ export default function AdminDashboard() {
 
       if (editingProductId) {
         await updateDoc(doc(db, "products", editingProductId), payload);
-        showToast("Ürün başarıyla güncellendi.");
+        showToast("Ürün güncellendi.");
       } else {
-        await addDoc(collection(db, "products"), {
-          ...payload,
-          createdAt: serverTimestamp(),
-        });
-        showToast("Ürün başarıyla eklendi.");
+        await addDoc(collection(db, "products"), { ...payload, createdAt: serverTimestamp() });
+        showToast("Ürün eklendi.");
       }
 
       resetProductForm();
       return true;
     } catch (error) {
-      showToast(error?.message || "Ürün kaydedilemedi.");
+      showError(error, "Ürün kaydedilemedi.");
       return false;
     } finally {
       setSaving(false);
     }
   }
 
-  function editProduct(product) {
-    setActiveTab("products");
-    setEditingProductId(product.id);
-    setProductForm(cleanObjectForEdit(product, emptyProduct));
-    setProductFile(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function updateProduct(id, patch) {
+  async function updateProduct(id, patch, message = "Ürün güncellendi.") {
     try {
-      await updateDoc(doc(db, "products", id), {
-        ...patch,
-        updatedAt: serverTimestamp(),
-      });
-
-      showToast("Ürün güncellendi.");
+      await updateDoc(doc(db, "products", id), { ...patch, updatedAt: serverTimestamp() });
+      showToast(message);
     } catch (error) {
-      showToast(error?.message || "Ürün güncellenemedi.");
+      showError(error, "Ürün güncellenemedi.");
     }
   }
 
-  async function removeProduct(id) {
-    const approved = window.confirm("Bu ürünü kalıcı olarak silmek istiyor musun?");
-    if (!approved) return;
-
+  async function removeProduct(product) {
+    if (!window.confirm(`“${product.title || "Ürün"}” kalıcı olarak silinsin mi?`)) return;
     try {
-      await deleteDoc(doc(db, "products", id));
+      await deleteDoc(doc(db, "products", product.id));
       showToast("Ürün silindi.");
     } catch (error) {
-      showToast(error?.message || "Ürün silinemedi.");
+      showError(error, "Ürün silinemedi.");
     }
+  }
+
+  /* ---------- Galeri ---------- */
+
+  function resetGalleryForm() {
+    setEditingGalleryId("");
+    setGalleryForm(emptyGallery);
+    setGalleryFile(null);
+  }
+
+  function editGallery(item) {
+    setEditingGalleryId(item.id);
+    setGalleryForm(cleanObjectForEdit(item, emptyGallery));
+    setGalleryFile(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function saveGallery(event) {
     event.preventDefault();
 
     if (!String(galleryForm.title || "").trim()) {
-      showToast("Galeri başlığı zorunludur.");
+      showToast("Görsel başlığı zorunludur.", "error");
+      return;
+    }
+    if (!galleryFile && !String(galleryForm.imageUrl || "").trim()) {
+      showToast("Bir görsel dosyası seçin veya görsel bağlantısı girin.", "error");
       return;
     }
 
     setSaving(true);
-
     try {
       const uploadedUrl = await uploadImageFile(galleryFile, "gallery");
-      const finalImageUrl = uploadedUrl || String(galleryForm.imageUrl || "").trim();
-
       const payload = {
-        ...galleryForm,
         title: String(galleryForm.title || "").trim(),
         tag: String(galleryForm.tag || "").trim(),
-        imageUrl: finalImageUrl,
+        imageUrl: uploadedUrl || String(galleryForm.imageUrl || "").trim(),
         sortOrder: safeNumber(galleryForm.sortOrder, 10),
         isActive: Boolean(galleryForm.isActive),
         updatedAt: serverTimestamp(),
@@ -396,115 +342,76 @@ export default function AdminDashboard() {
 
       if (editingGalleryId) {
         await updateDoc(doc(db, "gallery", editingGalleryId), payload);
-        showToast("Galeri kartı güncellendi.");
+        showToast("Görsel güncellendi.");
       } else {
-        await addDoc(collection(db, "gallery"), {
-          ...payload,
-          createdAt: serverTimestamp(),
-        });
-        showToast("Galeri kartı eklendi.");
+        await addDoc(collection(db, "gallery"), { ...payload, createdAt: serverTimestamp() });
+        showToast("Görsel eklendi.");
       }
-
       resetGalleryForm();
     } catch (error) {
-      showToast(error?.message || "Galeri kaydedilemedi.");
+      showError(error, "Görsel kaydedilemedi.");
     } finally {
       setSaving(false);
     }
   }
 
-  function editGallery(item) {
-    setActiveTab("gallery");
-    setEditingGalleryId(item.id);
-    setGalleryForm(cleanObjectForEdit(item, emptyGallery));
-    setGalleryFile(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   async function updateGallery(id, patch) {
     try {
-      await updateDoc(doc(db, "gallery", id), {
-        ...patch,
-        updatedAt: serverTimestamp(),
-      });
-
+      await updateDoc(doc(db, "gallery", id), { ...patch, updatedAt: serverTimestamp() });
       showToast("Galeri güncellendi.");
     } catch (error) {
-      showToast(error?.message || "Galeri güncellenemedi.");
+      showError(error, "Galeri güncellenemedi.");
     }
   }
 
-  async function removeGallery(id) {
-    const approved = window.confirm(
-      "Bu galeri kartını kalıcı olarak silmek istiyor musun?"
-    );
-
-    if (!approved) return;
-
+  async function removeGallery(item) {
+    if (!window.confirm(`“${item.title || "Görsel"}” galeriden kalıcı olarak silinsin mi?`)) return;
     try {
-      await deleteDoc(doc(db, "gallery", id));
-      showToast("Galeri kartı silindi.");
+      await deleteDoc(doc(db, "gallery", item.id));
+      if (editingGalleryId === item.id) resetGalleryForm();
+      showToast("Görsel silindi.");
     } catch (error) {
-      showToast(error?.message || "Galeri kartı silinemedi.");
+      showError(error, "Görsel silinemedi.");
     }
   }
+
+  /* ---------- Site ayarları ---------- */
 
   async function saveSettings(event) {
-    event.preventDefault();
+    event?.preventDefault?.();
 
-    if (!String(settingsDraft.phone || "").trim()) {
-      showToast("Müşterilerin ulaşabilmesi için telefon numarası zorunludur.");
-      return;
-    }
+    const fail = (text) => {
+      showToast(text, "error");
+      return false;
+    };
 
-    if (!String(settingsDraft.address || "").trim()) {
-      showToast("Yerel SEO ve müşteri güveni için adres zorunludur.");
-      return;
-    }
+    if (!String(settingsDraft.phone || "").trim()) return fail("Telefon numarası zorunludur.");
+    if (!String(settingsDraft.address || "").trim()) return fail("Adres zorunludur.");
 
     const siteUrl = String(settingsDraft.siteUrl || "").trim();
     const ga4Id = String(settingsDraft.googleAnalyticsId || "").trim();
     const gtmId = String(settingsDraft.googleTagManagerId || "").trim();
     const pixelId = String(settingsDraft.metaPixelId || "").trim();
 
-    if (siteUrl && !/^https:\/\/[^\s]+$/i.test(siteUrl)) {
-      showToast("Canlı site adresi https:// ile başlayan geçerli bir URL olmalı.");
-      return;
-    }
-
-    if (ga4Id && !/^G-[A-Z0-9]{6,14}$/i.test(ga4Id)) {
-      showToast("GA4 Measurement ID formatı hatalı. Örnek: G-XXXXXXXXXX");
-      return;
-    }
-
-    if (gtmId && !/^GTM-[A-Z0-9]{4,12}$/i.test(gtmId)) {
-      showToast("Google Tag Manager ID formatı hatalı. Örnek: GTM-XXXXXXX");
-      return;
-    }
-
-    if (pixelId && !/^\d{8,20}$/.test(pixelId)) {
-      showToast("Meta Pixel ID yalnızca 8-20 rakamdan oluşmalı.");
-      return;
-    }
-
-    if (ga4Id && gtmId) {
-      showToast("Çift sayımı önlemek için GA4 veya GTM alanlarından yalnızca birini kullan.");
-      return;
-    }
+    if (siteUrl && !/^https:\/\/\S+$/i.test(siteUrl)) return fail("Site adresi https:// ile başlamalı.");
+    if (ga4Id && !/^G-[A-Z0-9]{6,14}$/i.test(ga4Id)) return fail("GA4 kimliği hatalı. Örnek: G-XXXXXXXXXX");
+    if (gtmId && !/^GTM-[A-Z0-9]{4,12}$/i.test(gtmId)) return fail("GTM kimliği hatalı. Örnek: GTM-XXXXXXX");
+    if (pixelId && !/^\d{8,20}$/.test(pixelId)) return fail("Meta Pixel kimliği 8–20 rakamdan oluşmalı.");
+    if (ga4Id && gtmId) return fail("Çift sayımı önlemek için GA4 veya GTM'den yalnızca birini kullanın.");
 
     setSaving(true);
-
     try {
-      const uploadedLogoUrl = await uploadImageFile(logoFile, "site");
-      const uploadedHeroUrl = await uploadImageFile(heroFile, "site");
-      const uploadedShowcaseUrl = await uploadImageFile(showcaseFile, "site");
+      const [logoUrl, heroUrl, showcaseUrl] = await Promise.all([
+        uploadImageFile(logoFile, "site"),
+        uploadImageFile(heroFile, "site"),
+        uploadImageFile(showcaseFile, "site"),
+      ]);
 
       const payload = {
         ...settingsDraft,
-        brandLogoUrl: uploadedLogoUrl || settingsDraft.brandLogoUrl || "",
-        heroImageUrl: uploadedHeroUrl || settingsDraft.heroImageUrl || "",
-        showcaseImageUrl:
-          uploadedShowcaseUrl || settingsDraft.showcaseImageUrl || "",
+        brandLogoUrl: logoUrl || settingsDraft.brandLogoUrl || "",
+        heroImageUrl: heroUrl || settingsDraft.heroImageUrl || "",
+        showcaseImageUrl: showcaseUrl || settingsDraft.showcaseImageUrl || "",
         vehicleGroups: textToArray(settingsDraft.vehicleGroupsText),
         advantages: textToArray(settingsDraft.advantagesText),
         processSteps: textToArray(settingsDraft.processStepsText),
@@ -522,110 +429,48 @@ export default function AdminDashboard() {
       setLogoFile(null);
       setHeroFile(null);
       setShowcaseFile(null);
-
-      showToast("Tema ve ana sayfa ayarları kaydedildi.");
+      dirtyRef.current = false;
+      setSettingsDirty(false);
+      setSettingsDraft(buildDraft(payload));
+      showToast("Ayarlar kaydedildi ve sitede yayına alındı.");
+      return true;
     } catch (error) {
-      showToast(error?.message || "Ayarlar kaydedilemedi.");
+      showError(error, "Ayarlar kaydedilemedi.");
+      return false;
     } finally {
       setSaving(false);
     }
   }
+
+  /* ---------- Talepler ---------- */
 
   async function updateLeadStatus(id, status) {
     try {
-      await updateDoc(doc(db, "leads", id), {
-        status,
-        updatedAt: serverTimestamp(),
-      });
-
+      await updateDoc(doc(db, "leads", id), { status, updatedAt: serverTimestamp() });
       showToast("Talep durumu güncellendi.");
     } catch (error) {
-      showToast(error?.message || "Talep güncellenemedi.");
+      showError(error, "Talep güncellenemedi.");
     }
   }
 
-  async function removeLead(id) {
-    const approved = window.confirm("Bu müşteri talebini silmek istiyor musun?");
-    if (!approved) return;
-
+  async function removeLead(lead) {
+    if (!window.confirm(`${lead.name || "Bu müşteri"} talebi kalıcı olarak silinsin mi?`)) return;
     try {
-      await deleteDoc(doc(db, "leads", id));
+      await deleteDoc(doc(db, "leads", lead.id));
       showToast("Talep silindi.");
     } catch (error) {
-      showToast(error?.message || "Talep silinemedi.");
+      showError(error, "Talep silinemedi.");
     }
   }
 
-  async function seedDemoContent() {
-    const approved = window.confirm("Örnek ürün ve galeri kartları eklensin mi?");
-    if (!approved) return;
-
-    setSaving(true);
-
-    try {
-      await addDoc(collection(db, "products"), {
-        title: "Premium Deri Görünümlü Oto Kılıf",
-        category: "Binek Araç",
-        material: "Deri görünümlü",
-        priceAmount: null,
-        discountPriceAmount: null,
-        currency: "TRY",
-        priceText: "Teklif alınız",
-        showPrice: true,
-        imageUrl: "",
-        description:
-          "Model uyumlu kesim, premium görünüm ve kolay temizlenebilir yüzey yapısıyla günlük kullanıma uygun oto kılıf çözümü.",
-        isActive: true,
-        isFeatured: true,
-        sortOrder: 10,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      await addDoc(collection(db, "gallery"), {
-        title: "Spor dikiş detaylı uygulama",
-        tag: "Detay",
-        imageUrl: "",
-        isActive: true,
-        sortOrder: 10,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      await setDoc(
-        doc(db, "settings", "site"),
-        {
-          ...defaultSettings,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
-
-      showToast("Örnek içerikler eklendi.");
-    } catch (error) {
-      showToast(error?.message || "Örnek içerikler eklenemedi.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const tabs = [
-    ["overview", "Özet", openLeads],
-    ["themes", "Tema", 0],
-    ["homepage", "Site Ayarları", 0],
-    ["products", "Ürünler", products.length],
-    ["gallery", "Galeri", galleryItems.length],
-    ["leads", "Talepler", openLeads],
-    ["analytics", "Analitik & SEO", 0],
-  ];
+  /* ---------- Görünüm ---------- */
 
   if (authState === "loading" || authState === "guest") {
     return (
-      <main className="admin-loading">
-        <div>
-          <span className="admin-spinner" />
-          <h1>AKC panel hazırlanıyor...</h1>
-          <p>Yetki kontrolü yapılıyor.</p>
+      <main className="adm-gate">
+        <div className="adm-gate-card">
+          <span className="adm-spinner" aria-hidden="true" />
+          <p>Yetki kontrol ediliyor…</p>
         </div>
       </main>
     );
@@ -633,57 +478,42 @@ export default function AdminDashboard() {
 
   if (authState === "blocked") {
     return (
-      <main className="admin-loading">
-        <div>
-          <h1>Yetki yok.</h1>
-          <p>
-            Bu kullanıcı giriş yaptı ama Firestore <code>admins</code>{" "}
-            koleksiyonunda aktif admin olarak tanımlı değil.
-          </p>
-
-          <button className="admin-primary-btn" onClick={handleLogout}>
-            Çıkış yap
-          </button>
+      <main className="adm-gate">
+        <div className="adm-gate-card">
+          <h1>Erişim yetkiniz yok</h1>
+          <p>Bu hesap yönetim paneli için yetkilendirilmemiş. Yetki için işletme sahibiyle iletişime geçin.</p>
+          <div className="adm-row">
+            <Link className="adm-btn adm-btn--secondary" href="/">
+              Siteye dön
+            </Link>
+            <button className="adm-btn adm-btn--primary" type="button" onClick={handleLogout}>
+              Farklı hesapla giriş
+            </button>
+          </div>
         </div>
       </main>
     );
   }
 
+  const settingsProps = { settingsDraft, setSettingsDraft: updateSettings, saveSettings, saving, settingsDirty };
+
   return (
     <AdminShell
-      tabs={tabs}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
+      counts={counts}
       adminProfile={adminProfile}
       handleLogout={handleLogout}
       toast={toast}
-      seedDemoContent={seedDemoContent}
+      dismissToast={() => setToast(null)}
     >
       {activeTab === "overview" ? (
-        <OverviewTab
-          products={products}
-          activeProducts={activeProducts}
-          featuredProducts={featuredProducts}
-          openLeads={openLeads}
-          lastLead={lastLead}
-        />
-      ) : null}
-
-      {activeTab === "themes" ? (
-        <ThemesTab
-          settingsDraft={settingsDraft}
-          setSettingsDraft={setSettingsDraft}
-          saveSettings={saveSettings}
-          saving={saving}
-        />
+        <OverviewTab counts={counts} leads={leads} products={products} setActiveTab={setActiveTab} />
       ) : null}
 
       {activeTab === "homepage" ? (
         <HomepageTab
-          settingsDraft={settingsDraft}
-          setSettingsDraft={setSettingsDraft}
-          saveSettings={saveSettings}
-          saving={saving}
+          {...settingsProps}
           logoFile={logoFile}
           setLogoFile={setLogoFile}
           heroFile={heroFile}
@@ -692,6 +522,8 @@ export default function AdminDashboard() {
           setShowcaseFile={setShowcaseFile}
         />
       ) : null}
+
+      {activeTab === "themes" ? <ThemesTab {...settingsProps} /> : null}
 
       {activeTab === "products" ? (
         <ProductsTab
@@ -728,23 +560,11 @@ export default function AdminDashboard() {
       ) : null}
 
       {activeTab === "leads" ? (
-        <LeadsTab
-          leads={leads}
-          updateLeadStatus={updateLeadStatus}
-          removeLead={removeLead}
-        />
+        <LeadsTab leads={leads} updateLeadStatus={updateLeadStatus} removeLead={removeLead} />
       ) : null}
 
       {activeTab === "analytics" ? (
-        <AnalyticsTab
-          settingsDraft={settingsDraft}
-          setSettingsDraft={setSettingsDraft}
-          saveSettings={saveSettings}
-          saving={saving}
-          products={products}
-          galleryItems={galleryItems}
-          leads={leads}
-        />
+        <AnalyticsTab {...settingsProps} products={products} galleryItems={galleryItems} leads={leads} />
       ) : null}
     </AdminShell>
   );

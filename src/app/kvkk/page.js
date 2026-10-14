@@ -1,4 +1,4 @@
-import Link from "next/link";
+import LegalLayout from "@/components/LegalLayout";
 
 export const metadata = {
   title: "KVKK Aydınlatma Metni",
@@ -8,12 +8,7 @@ export const metadata = {
 
 export default function KvkkPage() {
   return (
-    <main className="legal-page site-shell">
-      <Link href="/">← Ana sayfaya dön</Link>
-      <p className="eyebrow">6698 sayılı Kanun</p>
-      <h1>KVKK Aydınlatma Metni</h1>
-      <p>Son güncelleme: 19 Temmuz 2026</p>
-      <section>
+    <LegalLayout eyebrow="6698 sayılı Kanun" title="KVKK Aydınlatma Metni" updated="19 Temmuz 2026">
         <h2>Veri sorumlusu ve amaç</h2>
         <p>
           AKC Oto Kılıf, iletişim ve teklif talepleriniz kapsamında paylaştığınız
@@ -29,10 +24,10 @@ export default function KvkkPage() {
         <h2>Haklarınız</h2>
         <p>
           KVKK madde 11 kapsamındaki bilgi alma, düzeltme, silme ve itiraz haklarınızı
-          kullanmak için <a href="mailto:info@akcotokilif.com">info@akcotokilif.com</a>
+          kullanmak için{" "}
+          <a href="mailto:info@akcotokilif.com">info@akcotokilif.com</a>{" "}
           adresine başvurabilirsiniz.
         </p>
-      </section>
-    </main>
+    </LegalLayout>
   );
 }

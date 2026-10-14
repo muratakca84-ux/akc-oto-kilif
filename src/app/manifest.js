@@ -5,8 +5,8 @@ export default function manifest() {
     description: "Araca özel oto kılıf, döşeme ve profesyonel montaj.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f4f4ef",
-    theme_color: "#f4f4ef",
+    background_color: "#0b1626",
+    theme_color: "#0b1626",
     lang: "tr",
     icons: [
       {

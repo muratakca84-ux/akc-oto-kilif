@@ -1,150 +1,110 @@
+"use client";
+
+import { Card, Field, PageHead, SaveBar } from "./AdminUI";
 import { defaultThemeState, themePresets } from "@/lib/theme";
 
-export default function ThemesTab({
-  settingsDraft,
-  setSettingsDraft,
-  saveSettings,
-  saving,
-}) {
+const COLOR_FIELDS = [
+  ["themeBackground", "Bölüm arka planı"],
+  ["themeSurface", "Sayfa / kart zemini"],
+  ["themeForeground", "Ana metin"],
+  ["themeMuted", "İkincil metin"],
+  ["themeAccent", "Vurgu (butonlar)"],
+  ["themeAccentSoft", "Vurgu açık ton"],
+  ["themeButtonText", "Buton yazısı"],
+];
+
+function ThemePreview({ colors }) {
   return (
-    <section className="admin-panel">
-      <div className="panel-head">
-        <div>
-          <h2>Tema yönetimi</h2>
-          <p>
-            Hazır temalar seçin, özel renkler tanımlayın ve sitenin görünümünü
-            anında kaydedin.
-          </p>
-        </div>
+    <div className="adm-theme-preview" style={{ background: colors.themeSurface, color: colors.themeForeground }}>
+      <div className="adm-theme-preview-bar" style={{ borderColor: colors.themeLine }}>
+        <span style={{ background: colors.themeForeground }} />
+        <i style={{ background: colors.themeAccent }} />
       </div>
+      <div className="adm-theme-preview-body" style={{ background: colors.themeBackground }}>
+        <b style={{ background: colors.themeForeground }} />
+        <em style={{ background: colors.themeMuted }} />
+        <em style={{ background: colors.themeMuted, width: "60%" }} />
+        <span style={{ background: colors.themeAccent }} />
+      </div>
+    </div>
+  );
+}
 
-      <div className="theme-grid">
-        {themePresets.map((preset) => (
-          <article
-            key={preset.id}
-            className={`theme-card ${
-              settingsDraft.themePreset === preset.id ? "active" : ""
-            }`}
-          >
-            <div>
-              <h3>{preset.name}</h3>
-              <p>{preset.description}</p>
-            </div>
+export default function ThemesTab({ settingsDraft, setSettingsDraft, saveSettings, saving, settingsDirty }) {
+  const current = settingsDraft.themePreset || "classic";
 
-            <div className="theme-color-row">
-              {Object.values(preset.colors)
-                .slice(0, 6)
-                .map((color) => (
-                  <span
-                    key={`${preset.id}-${color}`}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 999,
-                      background: color,
-                      border: "1px solid rgba(255,255,255,0.18)",
-                    }}
-                  />
-                ))}
-            </div>
+  function applyPreset(preset) {
+    setSettingsDraft((draft) => ({
+      ...draft,
+      themePreset: preset.id,
+      themeName: preset.name,
+      themeDescription: preset.description,
+      ...preset.colors,
+    }));
+  }
 
+  function setColor(key, value) {
+    setSettingsDraft((draft) => ({ ...draft, themePreset: "custom", themeName: "Özel tema", [key]: value }));
+  }
+
+  const draftColors = Object.fromEntries(
+    Object.keys(defaultThemeState).map((key) => [key, settingsDraft[key] || defaultThemeState[key]])
+  );
+
+  return (
+    <>
+      <PageHead
+        title="Tema"
+        description="Sitenin renk düzenini seçin. Kaydettiğinizde tüm sayfalara uygulanır; yönetim paneli değişmez."
+      />
+
+      <Card title="Hazır temalar">
+        <div className="adm-themes">
+          {themePresets.map((preset) => (
             <button
-              className="admin-secondary-btn"
+              key={preset.id}
               type="button"
-              onClick={() =>
-                setSettingsDraft({
-                  ...settingsDraft,
-                  themePreset: preset.id,
-                  themeName: preset.name,
-                  themeDescription: preset.description,
-                  ...preset.colors,
-                })
-              }
+              className={`adm-theme ${current === preset.id ? "is-active" : ""}`}
+              onClick={() => applyPreset(preset)}
+              aria-pressed={current === preset.id}
             >
-              Bu temayı uygula
+              <ThemePreview colors={preset.colors} />
+              <strong>{preset.name}</strong>
+              <small>{preset.description}</small>
             </button>
-          </article>
-        ))}
-      </div>
-
-      <form className="theme-form" onSubmit={saveSettings}>
-        <div className="theme-form-grid">
-          <label>
-            Tema adı
-            <input
-              value={settingsDraft.themeName || ""}
-              onChange={(event) =>
-                setSettingsDraft({
-                  ...settingsDraft,
-                  themePreset: "custom",
-                  themeName: event.target.value,
-                })
-              }
-            />
-          </label>
-
-          <label>
-            Tema açıklaması
-            <input
-              value={settingsDraft.themeDescription || ""}
-              onChange={(event) =>
-                setSettingsDraft({
-                  ...settingsDraft,
-                  themePreset: "custom",
-                  themeDescription: event.target.value,
-                })
-              }
-            />
-          </label>
-        </div>
-
-        <div className="theme-color-row">
-          {[
-            ["themeBackground", "Arka plan"],
-            ["themeForeground", "Ana yazı"],
-            ["themeMuted", "İkincil yazı"],
-            ["themeAccent", "Vurgu rengi"],
-            ["themeAccentSoft", "Yumuşak vurgu"],
-            ["themeAccentDark", "Koyu vurgu"],
-            ["themeSurface", "Kart / yüzey"],
-            ["themeButtonText", "Düğme yazısı"],
-          ].map(([key, label]) => (
-            <label key={key}>
-              {label}
-              <input
-                type="color"
-                value={settingsDraft[key] || defaultThemeState[key] || "#ffffff"}
-                onChange={(event) =>
-                  setSettingsDraft({
-                    ...settingsDraft,
-                    themePreset: "custom",
-                    [key]: event.target.value,
-                  })
-                }
-              />
-            </label>
           ))}
         </div>
+      </Card>
 
-        <div className="topbar-actions">
+      <Card
+        title="Özel renkler"
+        description={current === "custom" ? "Özel renkler kullanılıyor." : "Bir rengi değiştirdiğinizde tema “Özel” olarak kaydedilir."}
+        actions={
           <button
-            className="admin-secondary-btn"
             type="button"
-            onClick={() =>
-              setSettingsDraft({
-                ...settingsDraft,
-                ...defaultThemeState,
-              })
-            }
+            className="adm-btn adm-btn--ghost adm-btn--sm"
+            onClick={() => applyPreset(themePresets[0])}
           >
-            Varsayılan temaya dön
+            Varsayılana dön
           </button>
-
-          <button className="admin-primary-btn" type="submit" disabled={saving}>
-            {saving ? "Tema kaydediliyor..." : "Temayı kaydet"}
-          </button>
+        }
+      >
+        <div className="adm-colors-layout">
+          <div className="adm-colors">
+            {COLOR_FIELDS.map(([key, label]) => (
+              <Field key={key} label={label}>
+                <span className="adm-color">
+                  <input type="color" value={draftColors[key]} onChange={(event) => setColor(key, event.target.value)} />
+                  <code>{draftColors[key]}</code>
+                </span>
+              </Field>
+            ))}
+          </div>
+          <ThemePreview colors={draftColors} />
         </div>
-      </form>
-    </section>
+      </Card>
+
+      <SaveBar dirty={settingsDirty} saving={saving} onSave={() => saveSettings()} label="Temayı kaydet" />
+    </>
   );
 }

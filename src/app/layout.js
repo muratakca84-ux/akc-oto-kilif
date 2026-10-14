@@ -1,13 +1,18 @@
 import { Suspense } from "react";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import "./admin.css";
-import "./auth.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import AnalyticsScripts from "@/components/AnalyticsScripts";
 import CookieConsent from "@/components/CookieConsent";
 import ThemeProvider from "@/components/ThemeProvider";
 import ControlGate from "@/components/dromocob-control/control-gate";
 import { SITE_URL } from "@/lib/seo";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -84,7 +89,7 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f7f7f3",
+  themeColor: "#0b1626",
 };
 
 export default function RootLayout({ children }) {
@@ -93,7 +98,7 @@ export default function RootLayout({ children }) {
     : children;
 
   return (
-    <html lang="tr" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="tr" className={inter.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script
           id="akc-consent-default"

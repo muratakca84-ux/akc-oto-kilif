@@ -4,327 +4,113 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AuthNavMenu from "@/components/AuthNavMenu";
-import {
-  addDoc,
-  collection,
-  doc,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-} from "firebase/firestore";
+import { addDoc, collection, limit, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import SeoStructuredData from "@/components/SeoStructuredData";
+import Icon from "@/components/Icon";
 import { trackEvent } from "@/lib/analytics";
-const fallbackSettings = {
-  businessName: "AKC Oto Kılıf",
-  brandSubtitle: "Özel dikim • Döşeme • Profesyonel montaj",
+import { SERVICE_PAGES } from "@/lib/seo";
+import { getContact, onlyDigits, SITE_FALLBACK } from "@/lib/site-config";
+import { useSiteSettings } from "@/lib/use-site-settings";
 
-  heroEyebrow: "Araç iç mekânında premium işçilik",
-  heroTitle: "Aracınıza özel oto kılıf ve döşeme çözümleri.",
-  heroHighlight: "AKC standardı.",
-  heroSubtitle:
-    "AKC Oto Kılıf; binek, SUV, hafif ticari, taksi, servis ve filo araçları için ölçülü, dayanıklı, şık ve profesyonel montajlı oto kılıf hizmeti sunar.",
-
-  qualityLabel: "Premium İç Mekân",
-  qualityText: "Ölçülü dikim, net görünüm.",
-
-  phone: "+90 501 586 42 84",
-  whatsapp: "905015864284",
-  email: "info@akcotokilif.com",
-  address: "Hacıveyiszade, Fetih Cd. No:145 D:B, 42030 Karatay/Konya",
-  instagram: "",
-  workingHours: "Pazartesi - Cumartesi 09:00 - 19:00",
-  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=AKC+Oto+K%C4%B1l%C4%B1f+Karatay+Konya",
-
-  brandLogoUrl: "/images/akc-logo-square.png",
-  heroImageUrl: "/images/hero-premium-seat-covers.jpg",
-  showcaseImageUrl: "/images/suv-seat-cover-installation.jpg",
-
-  headerBannerText: "Profesyonel montaj, ölçülü kılıf, güçlü duruş.",
-
-  materialEyebrow: "Malzeme ve görünüm",
-  materialTitle: "Gündelik kullanıma dayanır, aracın havasını değiştirir.",
-  materialText:
-    "Oto kılıfta kalite sadece ilk bakışta değil, kullanım sürecinde anlaşılır. Bu yüzden malzeme seçimi, dikiş dili ve montaj temizliği aynı standartta ilerlemelidir.",
-
-  processEyebrow: "Süreç",
-  processTitle: "Tekliften montaja kadar net ilerleyen iş akışı.",
-  processText:
-    "Müşterinin kafasında soru kalmaması için süreç baştan sade ve net ilerler. Araç bilgisi alınır, beklenti anlaşılır, doğru malzeme seçilir ve uygulama planlanır.",
-
-  galleryEyebrow: "Galeri",
-  galleryTitle: "Panelden yüklenen işler burada kurumsal vitrine dönüşür.",
-  galleryText:
-    "Gerçek montaj, detay dikiş, koltuk yakın plan ve araç iç mekân çekimleriyle güven veren bir vitrin oluşturulur.",
-
-  corporateEyebrow: "Güvenli uygulama",
-  corporateTitle: "Aracınızın koltuk yapısına saygılı, temiz ve kontrollü işçilik.",
-  corporateText:
-    "Koltuk formu, dikiş hatları ve araç güvenlik yapısı uygulama öncesinde kontrol edilir. Malzeme ve tasarım tercihi netleştirildikten sonra üretim ve montaj planlı şekilde tamamlanır.",
-
-  quoteEyebrow: "AKC standardı",
-  quoteTitle: "“Kılıf takıldı” değil, “araç yenilendi” dedirten işçilik.",
-  quoteText:
-    "Oto kılıfta farkı çoğu zaman küçük detaylar belirler: dikiş çizgisi, köşe dönüşü, koltuğa oturuş, malzeme hissi ve montaj temizliği.",
-
-  faqEyebrow: "Sık sorulanlar",
-  faqTitle: "Müşterinin aklındaki ilk sorulara net cevap.",
-  faqText:
-    "Karar vermeden önce en çok sorulan konular burada. Detaylı bilgi için WhatsApp üzerinden araç bilgisi göndererek hızlı teklif alınabilir.",
-
-  contactEyebrow: "İletişim",
-  contactTitle: "Aracınız için hızlı teklif alın.",
-  contactText:
-    "Marka, model, yıl ve istediğiniz malzeme tarzını gönderin. Fotoğraf varsa ekleyin; size en uygun çözüm ve fiyat için dönüş yapılsın.",
-
-  footerTitle: "AKC Oto Kılıf",
-  footerDescription:
-    "Araç iç mekânında premium kalite, müşteri deneyiminde güven veren yaklaşım.",
-  footerCopy: "© 2026 AKC Oto Kılıf. Tüm hakları saklıdır.",
-
-  vehicleGroups: [
-    "Binek Araç",
-    "SUV",
-    "Hafif Ticari",
-    "Taksi",
-    "Servis Aracı",
-    "Filo Araçları",
-  ],
-
-  advantages: [
-    "Model uyumlu ölçü mantığı",
-    "Koltuğa oturan temiz görünüm",
-    "Yoğun kullanıma uygun malzeme",
-    "Kurumsal araçlar için filo çözümü",
-    "WhatsApp üzerinden hızlı teklif",
-    "Konya'da yerinde keşif ve profesyonel montaj",
-  ],
-
-  processSteps: [
-    "Araç marka, model ve yıl bilgisi alınır.",
-    "Kullanım amacı ve malzeme beklentisi netleştirilir.",
-    "Renk, dikiş ve tasarım seçenekleri belirlenir.",
-    "Üretim ve profesyonel montaj süreci tamamlanır.",
-  ],
-
-  faqs: [
-    {
-      q: "Kılıflar araca özel mi hazırlanıyor?",
-      a: "Evet. Hedef, universal kılıf gibi bol duran bir görüntü değil; koltuğa oturan, temiz ve profesyonel duran bir sonuçtur.",
-    },
-    {
-      q: "Airbag uyumu önemli mi?",
-      a: "Evet, çok önemli. Koltuk güvenlik yapısı dikkate alınarak uygulama yapılmalıdır.",
-    },
-    {
-      q: "Ticari araçlara uygun üretim var mı?",
-      a: "Evet. Taksi, servis, filo ve hafif ticari araçlar için yoğun kullanıma uygun çözümler hazırlanır.",
-    },
-    {
-      q: "Teklif almak için hangi bilgiler gerekir?",
-      a: "Araç marka, model, yıl, koltuk tipi ve istenen malzeme tarzı yeterlidir. Fotoğraf gönderilirse daha net değerlendirme yapılabilir.",
-    },
-    {
-      q: "Montaj ne kadar sürer?",
-      a: "Süre araç ve uygulama kapsamına göre değişir. Araç bilgisi alındıktan sonra tahmini üretim ve montaj süresi teklif ile birlikte paylaşılır.",
-    },
-    {
-      q: "Konya dışında hizmet veriyor musunuz?",
-      a: "Merkezimiz Karatay/Konya'dadır. Filo ve toplu uygulamalar için hizmet kapsamı ayrıca planlanabilir.",
-    },
-  ],
-};
-
-const fallbackGallery = [
-  { title: "Premium siyah ve konyak deri", tag: "Premium", imageUrl: "/images/hero-premium-seat-covers.jpg" },
-  { title: "Mavi spor dikiş detayı", tag: "Detay", imageUrl: "/images/seat-stitch-detail.jpg" },
+const FALLBACK_GALLERY = [
+  { title: "Siyah ve konyak deri kombinasyon", tag: "Binek", imageUrl: "/images/hero-premium-seat-covers.jpg" },
+  { title: "Kontrast dikiş detayı", tag: "Detay", imageUrl: "/images/seat-stitch-detail.jpg" },
   { title: "Gri ve grafit SUV uygulaması", tag: "SUV", imageUrl: "/images/suv-seat-cover-installation.jpg" },
 ];
 
-const customerPromises = [
-  {
-    title: "Araç uyumu kontrolü",
-    text: "Marka, model, yıl ve koltuk yapısı uygulamadan önce netleştirilir.",
-  },
-  {
-    title: "Şeffaf teklif",
-    text: "Malzeme, kapsam, tahmini süre ve fiyat işe başlamadan paylaşılır.",
-  },
-  {
-    title: "Temiz montaj",
-    text: "Koltuk formunu koruyan, gergin ve düzenli görünüm hedeflenir.",
-  },
-  {
-    title: "Satış sonrası destek",
-    text: "Uygulama sonrası kullanım ve bakım konusunda destek sağlanır.",
-  },
+const KEY_FACTS = [
+  { icon: "ruler", title: "Model uyumlu ölçü", text: "Marka, model ve yıla göre kesim" },
+  { icon: "shield", title: "Airbag uyumlu", text: "Güvenlik donanımına uygun dikim" },
+  { icon: "wrench", title: "Atölyede montaj", text: "Karatay'da randevulu uygulama" },
+  { icon: "truck", title: "Filo çözümleri", text: "Taksi, servis ve ticari araçlar" },
 ];
 
-const testimonials = [
-  {
-    name: "Binek araç müşterisi",
-    text: "Koltuklara tam oturdu, dikişleri ve montajı beklediğimizden çok daha temiz oldu.",
-  },
-  {
-    name: "Ticari araç müşterisi",
-    text: "Yoğun kullanım için doğru malzemeyi birlikte seçtik. Süreç ve fiyat baştan netti.",
-  },
-  {
-    name: "Filo müşterisi",
-    text: "Araçlar arasında aynı kalite standardını korumaları bizim için en önemli avantaj oldu.",
-  },
+const PROMISES = [
+  { title: "Araç uyumu kontrolü", text: "Marka, model, yıl ve koltuk yapısı uygulamadan önce netleştirilir." },
+  { title: "Şeffaf teklif", text: "Malzeme, kapsam, süre ve fiyat işe başlamadan yazılı olarak paylaşılır." },
+  { title: "Temiz montaj", text: "Koltuk formunu koruyan, gergin ve düzgün bir bitiş hedeflenir." },
+  { title: "Satış sonrası destek", text: "Uygulama sonrası kullanım ve bakım konusunda destek verilir." },
 ];
 
-function onlyDigits(value) {
-  return String(value || "").replace(/\D/g, "");
-}
+const EMPTY_FORM = { name: "", phone: "", email: "", vehicle: "", message: "", privacyConsent: false };
 
-function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function safeArray(value, fallback) {
+function listOr(value, fallback) {
   return Array.isArray(value) && value.length ? value : fallback;
 }
 
-function publicCopy(value, fallback) {
-  const text = String(value || "").trim();
-  if (!text) return fallback;
-  if (/admin|panelden|yönetilebilir dijital|site sadece vitrin/i.test(text)) {
-    return fallback;
-  }
-  return text;
-}
-
 export default function Home() {
-  const [settings, setSettings] = useState(fallbackSettings);
+  const settings = useSiteSettings();
+  const contact = getContact(settings);
   const [galleryItems, setGalleryItems] = useState([]);
-
-  const [leadForm, setLeadForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    vehicle: "",
-    message: "",
-    privacyConsent: false,
-  });
-
-  const [leadSubmitting, setLeadSubmitting] = useState(false);
-  const [leadFeedback, setLeadFeedback] = useState("");
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [status, setStatus] = useState({ state: "idle", message: "" });
 
   useEffect(() => {
-    const unsubSettings = onSnapshot(
-      doc(db, "settings", "site"),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setSettings({ ...fallbackSettings, ...snapshot.data() });
-        }
-      },
-      () => setSettings(fallbackSettings)
-    );
-
-    const galleryQuery = query(
-      collection(db, "gallery"),
-      orderBy("sortOrder", "asc"),
-      limit(100)
-    );
-
-    const unsubGallery = onSnapshot(
+    const galleryQuery = query(collection(db, "gallery"), orderBy("sortOrder", "asc"), limit(60));
+    return onSnapshot(
       galleryQuery,
-      (snapshot) => {
-        const data = snapshot.docs
-          .map((item) => ({ id: item.id, ...item.data() }))
-          .filter((item) => item.isActive !== false);
-
-        setGalleryItems(data);
-      },
+      (snapshot) =>
+        setGalleryItems(
+          snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((item) => item.isActive !== false)
+        ),
       () => setGalleryItems([])
     );
-
-    return () => {
-      unsubSettings();
-      unsubGallery();
-    };
   }, []);
 
-  const storedPhone = settings.phone || "";
-  const phoneDisplay = /000\s*00\s*00$/.test(storedPhone)
-    ? fallbackSettings.phone
-    : storedPhone || fallbackSettings.phone;
-  const phoneHref = `tel:+${onlyDigits(phoneDisplay)}`;
-  const storedWhatsapp = onlyDigits(settings.whatsapp || "");
-  const whatsappNumber = /0{6,}$/.test(storedWhatsapp)
-    ? fallbackSettings.whatsapp
-    : storedWhatsapp || onlyDigits(phoneDisplay);
-  const whatsappHref = `https://wa.me/${whatsappNumber}?text=Merhaba%20AKC%20Oto%20K%C4%B1l%C4%B1f%2C%20arac%C4%B1m%20i%C3%A7in%20teklif%20almak%20istiyorum.`;
-  const emailHref = `mailto:${settings.email || fallbackSettings.email}`;
+  const vehicleGroups = listOr(settings.vehicleGroups, SITE_FALLBACK.vehicleGroups);
+  const advantages = listOr(settings.advantages, SITE_FALLBACK.advantages);
+  const processSteps = listOr(settings.processSteps, SITE_FALLBACK.processSteps);
+  const faqs = listOr(settings.faqs, SITE_FALLBACK.faqs).filter((item) => item?.q && item?.a);
 
-  const vehicleGroups = useMemo(
-    () => safeArray(settings.vehicleGroups, fallbackSettings.vehicleGroups),
-    [settings.vehicleGroups]
-  );
+  const gallery = useMemo(() => {
+    const uploaded = galleryItems.filter(
+      (item) => item.imageUrl && !/logo/i.test(`${item.title || ""} ${item.imageUrl}`)
+    );
+    const seen = new Set();
+    return [...uploaded, ...FALLBACK_GALLERY]
+      .filter((item) => (seen.has(item.imageUrl) ? false : seen.add(item.imageUrl)))
+      .slice(0, 6);
+  }, [galleryItems]);
 
-  const advantages = useMemo(
-    () => safeArray(settings.advantages, fallbackSettings.advantages),
-    [settings.advantages]
-  );
+  function updateField(key, value) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
 
-  const processSteps = useMemo(
-    () => safeArray(settings.processSteps, fallbackSettings.processSteps),
-    [settings.processSteps]
-  );
-
-  const faqData = useMemo(
-    () => safeArray(settings.faqs, fallbackSettings.faqs),
-    [settings.faqs]
-  );
-
-  const galleryData = useMemo(
-    () => {
-      const uploaded = galleryItems.filter((item) => {
-        const searchable = `${item.title || ""} ${item.imageUrl || ""}`;
-        return item.imageUrl && !/logo/i.test(searchable);
-      });
-      return [...uploaded, ...fallbackGallery]
-        .filter(
-          (item, index, items) =>
-            items.findIndex((candidate) => candidate.imageUrl === item.imageUrl) === index,
-        )
-        .slice(0, 6);
-    },
-    [galleryItems]
-  );
-
-  async function handleLeadSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (status.state === "sending") return;
 
-    const cleanName = leadForm.name.trim();
-    const cleanPhone = leadForm.phone.trim();
-    const cleanEmail = normalizeEmail(leadForm.email);
-    const cleanVehicle = leadForm.vehicle.trim();
-    const cleanMessage = leadForm.message.trim();
+    const payload = {
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim().toLowerCase(),
+      vehicle: form.vehicle.trim(),
+      message: form.message.trim(),
+    };
 
-    if (!cleanName || !cleanPhone || !cleanMessage || !leadForm.privacyConsent) {
-      setLeadFeedback("Ad soyad, telefon, mesaj ve KVKK onayı zorunludur.");
+    if (!payload.name || !payload.phone || !payload.message) {
+      setStatus({ state: "error", message: "Ad soyad, telefon ve mesaj alanları zorunludur." });
+      return;
+    }
+    if (onlyDigits(payload.phone).length < 10) {
+      setStatus({ state: "error", message: "Lütfen geçerli bir telefon numarası girin." });
+      return;
+    }
+    if (!form.privacyConsent) {
+      setStatus({ state: "error", message: "Devam etmek için KVKK aydınlatma metnini onaylayın." });
       return;
     }
 
-    setLeadSubmitting(true);
-    setLeadFeedback("");
+    setStatus({ state: "sending", message: "" });
 
     try {
       await addDoc(collection(db, "leads"), {
-        name: cleanName,
-        phone: cleanPhone,
-        phoneDigits: onlyDigits(cleanPhone),
-        email: cleanEmail,
-        vehicle: cleanVehicle,
-        message: cleanMessage,
+        ...payload,
+        phoneDigits: onlyDigits(payload.phone),
         userId: auth.currentUser?.uid || "",
         source: "homepage_contact_form",
         status: "new",
@@ -334,461 +120,367 @@ export default function Home() {
         updatedAt: serverTimestamp(),
       });
 
-      setLeadFeedback("Talebiniz alındı. En kısa sürede sizinle iletişime geçeceğiz.");
       trackEvent("generate_lead", {
         contact_method: "contact_form",
-        vehicle_provided: Boolean(cleanVehicle),
+        vehicle_provided: Boolean(payload.vehicle),
         page_path: "/",
       });
-      setLeadForm({
-        name: "",
-        phone: "",
-        email: "",
-        vehicle: "",
-        message: "",
-        privacyConsent: false,
+      setForm(EMPTY_FORM);
+      setStatus({ state: "success", message: "Talebiniz alındı. En kısa sürede sizinle iletişime geçeceğiz." });
+    } catch {
+      setStatus({
+        state: "error",
+        message: "Talep şu anda gönderilemedi. Lütfen telefon veya WhatsApp üzerinden bize ulaşın.",
       });
-    } catch (error) {
-      setLeadFeedback(error?.message || "Talep gönderilemedi. Lütfen daha sonra tekrar deneyin.");
-    } finally {
-      setLeadSubmitting(false);
     }
   }
 
   return (
-    <main className="site-shell">
-      <SeoStructuredData settings={settings} faqs={faqData} />
-      <FloatingContactButtons phoneHref={phoneHref} whatsappHref={whatsappHref} />
-      <nav className="navbar">
-        <a className="brand" href="#top" aria-label="AKC Oto Kılıf Ana Sayfa">
-          {settings.brandLogoUrl || fallbackSettings.brandLogoUrl ? (
-            <span className="brand-logo-frame">
-              <img
-                className="brand-logo"
-                src={settings.brandLogoUrl || fallbackSettings.brandLogoUrl}
-                alt={`${settings.businessName || "AKC Oto Kılıf"} logo`}
-              />
-            </span>
-          ) : (
-            <span className="brand-mark">AKC</span>
-          )}
+    <>
+      <SiteHeader />
+      <SeoStructuredData settings={settings} faqs={faqs} />
+      <FloatingContactButtons />
 
-          <span>
-            <strong>{settings.businessName || "AKC Oto Kılıf"}</strong>
-            <small>{settings.brandSubtitle || fallbackSettings.brandSubtitle}</small>
-          </span>
-        </a>
+      <main id="top">
+        {/* HERO */}
+        <section className="hero">
+          <div className="container hero-grid">
+            <div className="hero-copy">
+              <p className="eyebrow">{settings.heroEyebrow}</p>
+              <h1>{settings.heroTitle}</h1>
+              <p className="lead">{settings.heroSubtitle}</p>
+              <div className="actions">
+                <Link className="btn btn-primary btn-lg" href="#iletisim">
+                  Teklif Alın <Icon name="arrow" size={18} />
+                </Link>
+                <a className="btn btn-outline btn-lg" href={contact.whatsappHref()} target="_blank" rel="noreferrer">
+                  <Icon name="whatsapp" size={18} /> WhatsApp
+                </a>
+              </div>
+              <a className="hero-phone" href={contact.phoneHref}>
+                <span>Hemen arayın</span>
+                <strong>{contact.phoneDisplay}</strong>
+              </a>
+            </div>
 
-        <div className="nav-links" aria-label="Sayfa menüsü">
-          <Link href="/urunler">Ürünler</Link>
-          <Link href="/hizmetler/konya-oto-kilif">Konya Oto Kılıf</Link>
-          <Link href="#surec">Süreç</Link>
-          <Link href="#galeri">Galeri</Link>
-          <Link href="#kurumsal">Kurumsal</Link>
-          <Link href="#iletisim">İletişim</Link>
-        </div>
+            <div className="hero-media">
+              <img src={settings.heroImageUrl} alt="AKC Oto Kılıf araca özel deri koltuk kılıfı uygulaması" />
+            </div>
+          </div>
 
-        <div className="nav-actions">
-          <AuthNavMenu />
-          <a className="nav-cta" href={phoneHref}>
-            Hemen Ara
-          </a>
-        </div>
-      </nav>
-
-      <section className="home-premium-banner">
-        <div>
-          <span>AKC Oto Kılıf</span>
-          <strong>{settings.headerBannerText || fallbackSettings.headerBannerText}</strong>
-          <p>Hızlı teklif, temiz montaj ve araca özel premium görünüm.</p>
-        </div>
-
-        <div className="header-banner-actions">
-          <a href={whatsappHref} target="_blank" rel="noreferrer" className="primary-btn">
-            WhatsApp ile Teklif Al
-          </a>
-          <a href={phoneHref} className="secondary-btn">
-            Bizi Ara
-          </a>
-        </div>
-      </section>
-
-      {settings.showcaseImageUrl ? (
-        <section className="showcase-panel showcase-panel-premium">
-          <img src={settings.showcaseImageUrl} alt="AKC Oto Kılıf vitrin görseli" />
-          <div>
-            <p className="eyebrow">Premium vitrin</p>
-            <h3>İşçilik, malzeme ve detayların birleştiği güçlü bir görünüm.</h3>
-            <p>
-              Gerçek uygulama görselleri, müşterinin güvenini artıran en güçlü
-              alanlardan biridir. Bu bölüm panelden yönetilir.
-            </p>
+          <div className="container">
+            <ul className="facts">
+              {KEY_FACTS.map((item) => (
+                <li key={item.title}>
+                  <span className="facts-icon">
+                    <Icon name={item.icon} size={22} />
+                  </span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <span>{item.text}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
-      ) : null}
 
-      <section id="top" className="hero hero-premium">
-        <div className="hero-content">
-          <p className="eyebrow">{settings.heroEyebrow || fallbackSettings.heroEyebrow}</p>
-
-          <h1>
-            {settings.heroTitle || fallbackSettings.heroTitle}
-            <span>{settings.heroHighlight || fallbackSettings.heroHighlight}</span>
-          </h1>
-
-          <p className="hero-text">
-            {settings.heroSubtitle || fallbackSettings.heroSubtitle}
-          </p>
-
-          <div className="hero-actions">
-            <a className="primary-btn" href={whatsappHref} target="_blank" rel="noreferrer">
-              WhatsApp Teklif Al
-            </a>
-
-            <Link className="secondary-btn" href="/urunler">
-              Ürünleri İncele
-            </Link>
-
-            <Link className="secondary-btn" href="/register">
-              Üye Ol
-            </Link>
+        {/* ARAÇ GRUPLARI */}
+        <section className="band" aria-label="Hizmet verilen araç grupları">
+          <div className="container band-inner">
+            <span className="band-label">Hizmet verdiğimiz araçlar</span>
+            <ul className="band-list">
+              {vehicleGroups.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
+        </section>
 
-          <div className="hero-trust-row">
-            <span>✓ Ölçülü uygulama</span>
-            <span>✓ Profesyonel montaj</span>
-            <span>✓ Kurumsal takip</span>
-          </div>
+        {/* HİZMETLER */}
+        <section id="hizmetler" className="section">
+          <div className="container">
+            <header className="section-head">
+              <p className="eyebrow">{settings.servicesEyebrow}</p>
+              <h2>{settings.servicesTitle}</h2>
+              <p>{settings.servicesText}</p>
+            </header>
 
-          <div className="hero-stats" aria-label="AKC öne çıkan özellikler">
-            <div>
-              <strong>Özel</strong>
-              <span>Model uyumlu üretim</span>
-            </div>
-            <div>
-              <strong>Temiz</strong>
-              <span>Profesyonel montaj</span>
-            </div>
-            <div>
-              <strong>Güçlü</strong>
-              <span>Dayanıklı malzeme</span>
+            <div className="service-grid">
+              {SERVICE_PAGES.map((service) => (
+                <Link className="service-card" key={service.slug} href={`/hizmetler/${service.slug}`}>
+                  <div className="service-card-media">
+                    <img src={service.image} alt="" loading="lazy" />
+                  </div>
+                  <div className="service-card-body">
+                    <h3>{service.title}</h3>
+                    <p>{service.description}</p>
+                    <span className="link-arrow">
+                      Detaylı bilgi <Icon name="arrow" size={16} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className={`hero-card ${(settings.heroImageUrl || fallbackSettings.heroImageUrl) ? "hero-card-photo" : ""}`}>
-          <div className="card-glow" />
-
-          {settings.heroImageUrl || fallbackSettings.heroImageUrl ? (
-            <img
-              className="hero-photo"
-              src={settings.heroImageUrl || fallbackSettings.heroImageUrl}
-              alt="AKC Oto Kılıf araç içi uygulama görseli"
-            />
-          ) : (
-            <div className="mock-car">
-              <div className="windshield" />
-              <div className="seat seat-left" />
-              <div className="seat seat-right" />
-              <div className="console" />
+        {/* NEDEN AKC */}
+        <section className="section section-alt">
+          <div className="container split">
+            <div className="split-media">
+              <img src={settings.showcaseImageUrl} alt="SUV araçta oto kılıf montajı" loading="lazy" />
             </div>
-          )}
-
-          <div className="quality-card">
-            <span>{settings.qualityLabel || fallbackSettings.qualityLabel}</span>
-            <strong>{settings.qualityText || fallbackSettings.qualityText}</strong>
-          </div>
-        </div>
-      </section>
-
-      <section className="logos" aria-label="Araç grupları">
-        {vehicleGroups.map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-      </section>
-
-      <section id="hizmetler" className="section">
-        <div className="modern-cta-card modern-cta-card-premium">
-          <div className="modern-cta-copy">
-            <p className="eyebrow">Yeni ürün kataloğu</p>
-            <h2>Ürünler ayrı sayfada, daha modern ve hızlı erişilebilir.</h2>
-            <p>
-              Kılıf, döşeme ve premium detay seçeneklerini ayrı katalogda keşfedin.
-              Fiyat bilgisi, ürün görseli ve WhatsApp sipariş butonu ile hızlı
-              iletişime geçin.
-            </p>
-          </div>
-
-          <div className="modern-cta-actions">
-            <Link className="primary-btn" href="/urunler">
-              Tüm Ürünleri Gör
-            </Link>
-            <a className="secondary-btn" href={whatsappHref} target="_blank" rel="noreferrer">
-              WhatsApp ile Teklif Al
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="split-section">
-        <div>
-          <p className="eyebrow">{settings.materialEyebrow}</p>
-          <h2>{settings.materialTitle}</h2>
-          <p>{settings.materialText}</p>
-        </div>
-
-        <div className="feature-list">
-          {advantages.map((item) => (
-            <p key={item}>{item}</p>
-          ))}
-        </div>
-      </section>
-
-      <section id="surec" className="section process-section">
-        <div className="section-head">
-          <p className="eyebrow">{settings.processEyebrow}</p>
-          <h2>{settings.processTitle}</h2>
-          <p>{settings.processText}</p>
-        </div>
-
-        <div className="timeline">
-          {processSteps.map((step, index) => (
-            <div className="timeline-item" key={step}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <p>{step}</p>
+            <div className="split-copy">
+              <p className="eyebrow">{settings.materialEyebrow}</p>
+              <h2>{settings.materialTitle}</h2>
+              <p>{settings.materialText}</p>
+              <ul className="check-list">
+                {advantages.map((item) => (
+                  <li key={item}>
+                    <Icon name="check" size={18} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link className="btn btn-dark" href="/urunler">
+                Ürünleri inceleyin <Icon name="arrow" size={18} />
+              </Link>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <section id="galeri" className="section gallery-section">
-        <div className="section-head">
-          <p className="eyebrow">{settings.galleryEyebrow}</p>
-          <h2>{publicCopy(settings.galleryTitle, "Gerçek uygulamalarımızı yakından inceleyin.")}</h2>
-          <p>{publicCopy(settings.galleryText, "Montaj, dikiş ve malzeme detaylarıyla tamamlanan işlerimizden örnekler.")}</p>
-        </div>
+        {/* SÜREÇ */}
+        <section id="surec" className="section">
+          <div className="container">
+            <header className="section-head">
+              <p className="eyebrow">{settings.processEyebrow}</p>
+              <h2>{settings.processTitle}</h2>
+              <p>{settings.processText}</p>
+            </header>
 
-        <div className="gallery-grid">
-          {galleryData.map((item, index) => (
-            <div
-              className={`gallery-card ${item.imageUrl ? "gallery-card-image" : ""}`}
-              key={item.id || item.title}
-            >
-              {item.imageUrl ? <img src={item.imageUrl} alt={item.title} /> : null}
+            <ol className="steps">
+              {processSteps.map((step, index) => (
+                <li key={step}>
+                  <span className="step-no">{String(index + 1).padStart(2, "0")}</span>
+                  <p>{step}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
 
-              <div className="gallery-card-content">
-                <span>{item.tag || `0${index + 1}`}</span>
-                <strong>{item.title}</strong>
+        {/* GALERİ */}
+        <section id="galeri" className="section section-alt">
+          <div className="container">
+            <header className="section-head section-head--row">
+              <div>
+                <p className="eyebrow">{settings.galleryEyebrow}</p>
+                <h2>{settings.galleryTitle}</h2>
               </div>
+              <p>{settings.galleryText}</p>
+            </header>
+
+            <div className="gallery-grid">
+              {gallery.map((item, index) => {
+                const caption = String(item.title || "").trim();
+                return (
+                  <figure className="gallery-item" key={item.id || item.imageUrl}>
+                    <img src={item.imageUrl} alt={caption || `AKC Oto Kılıf uygulama ${index + 1}`} loading="lazy" />
+                    {caption.length > 2 ? (
+                      <figcaption>
+                        {item.tag ? <span>{item.tag}</span> : null}
+                        {caption}
+                      </figcaption>
+                    ) : null}
+                  </figure>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="kurumsal" className="quote-section quote-section-premium">
-        <div>
-          <p className="eyebrow">Güvenli uygulama</p>
-          <h2>{publicCopy(settings.corporateTitle, fallbackSettings.corporateTitle)}</h2>
-        </div>
-
-        <div>
-          <p>{publicCopy(settings.corporateText, fallbackSettings.corporateText)}</p>
-
-          <div className="hero-actions">
-            <a className="primary-btn" href={whatsappHref} target="_blank" rel="noreferrer">
-              Araç Bilgisi Gönder
-            </a>
-            <a className="secondary-btn" href={phoneHref}>Ustaya Danış</a>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="section trust-section">
-        <div className="section-head">
-          <p className="eyebrow">Hizmet güvencesi</p>
-          <h2>Karar vermeden önce bilmeniz gerekenler net.</h2>
-          <p>
-            Araç tesliminden önce kapsamı konuşur, uygulama boyunca aynı kalite
-            standardını koruruz.
-          </p>
-        </div>
-
-        <div className="service-grid">
-          {customerPromises.map((item, index) => (
-            <article className="service-card" key={item.title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section testimonial-section" aria-labelledby="customer-reviews-title">
-        <div className="section-head">
-          <p className="eyebrow">Müşteri deneyimi</p>
-          <h2 id="customer-reviews-title">İyi işçilik, teslimden sonra da kendini gösterir.</h2>
-          <p>Farklı kullanım ihtiyaçlarında müşterilerimizin en çok önemsediği noktalar.</p>
-        </div>
-        <div className="testimonial-grid">
-          {testimonials.map((item) => (
-            <blockquote className="testimonial-card" key={item.name}>
-              <div aria-label="5 üzerinden 5 yıldız">★★★★★</div>
-              <p>“{item.text}”</p>
-              <cite>{item.name}</cite>
-            </blockquote>
-          ))}
-        </div>
-      </section>
-
-      <section className="quote-section">
-        <div>
-          <p className="eyebrow">{settings.quoteEyebrow}</p>
-          <h2>{settings.quoteTitle}</h2>
-        </div>
-
-        <p>{settings.quoteText}</p>
-      </section>
-
-      <section className="section faq-section">
-        <div className="section-head">
-          <p className="eyebrow">{settings.faqEyebrow}</p>
-          <h2>{settings.faqTitle}</h2>
-          <p>{settings.faqText}</p>
-        </div>
-
-        <div className="faq-grid">
-          {faqData.map((item) => (
-            <details key={item.q}>
-              <summary>{item.q}</summary>
-              <p>{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section id="iletisim" className="contact-section">
-        <div>
-          <p className="eyebrow">{settings.contactEyebrow}</p>
-          <h2>{settings.contactTitle}</h2>
-          <p>{settings.contactText}</p>
-        </div>
-
-        <div className="contact-card contact-card--stacked">
-          <form className="lead-form" onSubmit={handleLeadSubmit}>
-            <label>
-              <span>Ad Soyad</span>
-              <input
-                value={leadForm.name}
-                onChange={(event) =>
-                  setLeadForm((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Adınız Soyadınız"
-                required
-              />
-            </label>
-
-            <label>
-              <span>Telefon</span>
-              <input
-                value={leadForm.phone}
-                onChange={(event) =>
-                  setLeadForm((current) => ({ ...current, phone: event.target.value }))
-                }
-                placeholder="05xx xxx xx xx"
-                required
-              />
-            </label>
-
-            <label>
-              <span>E-posta</span>
-              <input
-                value={leadForm.email}
-                onChange={(event) =>
-                  setLeadForm((current) => ({ ...current, email: event.target.value }))
-                }
-                type="email"
-                placeholder="ornek@mail.com"
-              />
-            </label>
-
-            <label>
-              <span>Araç</span>
-              <input
-                value={leadForm.vehicle}
-                onChange={(event) =>
-                  setLeadForm((current) => ({ ...current, vehicle: event.target.value }))
-                }
-                placeholder="Marka / model / yıl"
-              />
-            </label>
-
-            <label>
-              <span>Mesaj</span>
-              <textarea
-                value={leadForm.message}
-                onChange={(event) =>
-                  setLeadForm((current) => ({ ...current, message: event.target.value }))
-                }
-                placeholder="İstenen malzeme, renk, tarih veya detay"
-                rows={4}
-                required
-              />
-            </label>
-
-            <label className="privacy-consent-field">
-              <input
-                type="checkbox"
-                checked={leadForm.privacyConsent}
-                onChange={(event) =>
-                  setLeadForm((current) => ({
-                    ...current,
-                    privacyConsent: event.target.checked,
-                  }))
-                }
-                required
-              />
-              <span>
-                <Link href="/kvkk" target="_blank">KVKK Aydınlatma Metni</Link> kapsamında
-                iletişim bilgilerimin teklif talebim için işlenmesini kabul ediyorum.
-              </span>
-            </label>
-
-            <button className="primary-btn" type="submit" disabled={leadSubmitting}>
-              {leadSubmitting ? "Gönderiliyor..." : "Teklif İste"}
-            </button>
-
-            {leadFeedback ? <p className="lead-feedback">{leadFeedback}</p> : null}
-          </form>
-
-          <div className="contact-links">
-            <a href={whatsappHref} target="_blank" rel="noreferrer">
-              WhatsApp: {phoneDisplay}
-            </a>
-
-            <a href={phoneHref}>Telefon: {phoneDisplay}</a>
-            <a href={emailHref}>{settings.email || fallbackSettings.email}</a>
-
-            {settings.googleMapsUrl ? (
-              <a href={settings.googleMapsUrl} target="_blank" rel="noreferrer">
-                Haritaya bak
+        {/* GÜVENCE */}
+        <section id="kurumsal" className="section section-dark">
+          <div className="container assurance">
+            <div className="assurance-copy">
+              <p className="eyebrow eyebrow--light">{settings.corporateEyebrow}</p>
+              <h2>{settings.corporateTitle}</h2>
+              <p>{settings.corporateText}</p>
+              <a className="btn btn-primary" href={contact.whatsappHref()} target="_blank" rel="noreferrer">
+                Araç bilgisi gönderin <Icon name="arrow" size={18} />
               </a>
-            ) : null}
-
-            <Link href="/login">Giriş Yap</Link>
-
-            <p>
-              {String(settings.address || "").includes("eklenecek")
-                ? fallbackSettings.address
-                : settings.address || fallbackSettings.address}
-              <br />
-              {settings.workingHours || fallbackSettings.workingHours}
-            </p>
+            </div>
+            <div className="assurance-grid">
+              {PROMISES.map((item, index) => (
+                <article key={item.title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <SiteFooter settings={settings} />
-    </main>
+        {/* SSS */}
+        <section id="sss" className="section">
+          <div className="container faq-layout">
+            <header className="section-head">
+              <p className="eyebrow">{settings.faqEyebrow}</p>
+              <h2>{settings.faqTitle}</h2>
+              <p>{settings.faqText}</p>
+              <a className="link-arrow" href={contact.phoneHref}>
+                <Icon name="phone" size={16} /> {contact.phoneDisplay}
+              </a>
+            </header>
+
+            <div className="faq-list">
+              {faqs.map((item) => (
+                <details key={item.q}>
+                  <summary>
+                    {item.q}
+                    <Icon name="plus" size={18} />
+                  </summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* İLETİŞİM */}
+        <section id="iletisim" className="section section-alt">
+          <div className="container contact-layout">
+            <div className="contact-info">
+              <p className="eyebrow">{settings.contactEyebrow}</p>
+              <h2>{settings.contactTitle}</h2>
+              <p>{settings.contactText}</p>
+
+              <ul className="contact-list">
+                <li>
+                  <Icon name="phone" size={20} />
+                  <div>
+                    <span>Telefon</span>
+                    <a href={contact.phoneHref}>{contact.phoneDisplay}</a>
+                  </div>
+                </li>
+                <li>
+                  <Icon name="whatsapp" size={20} />
+                  <div>
+                    <span>WhatsApp</span>
+                    <a href={contact.whatsappHref()} target="_blank" rel="noreferrer">
+                      Mesaj gönderin
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <Icon name="mail" size={20} />
+                  <div>
+                    <span>E-posta</span>
+                    <a href={contact.emailHref}>{contact.email}</a>
+                  </div>
+                </li>
+                <li>
+                  <Icon name="pin" size={20} />
+                  <div>
+                    <span>Adres</span>
+                    <a href={contact.mapsUrl} target="_blank" rel="noreferrer">
+                      {contact.address}
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <Icon name="clock" size={20} />
+                  <div>
+                    <span>Çalışma saatleri</span>
+                    <p>{contact.workingHours}</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <form className="card form" onSubmit={handleSubmit} noValidate>
+              <h3>Teklif formu</h3>
+              <div className="form-grid">
+                <label className="field">
+                  <span>Ad Soyad *</span>
+                  <input
+                    value={form.name}
+                    onChange={(event) => updateField("name", event.target.value)}
+                    autoComplete="name"
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>Telefon *</span>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(event) => updateField("phone", event.target.value)}
+                    placeholder="05xx xxx xx xx"
+                    autoComplete="tel"
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>E-posta</span>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => updateField("email", event.target.value)}
+                    autoComplete="email"
+                  />
+                </label>
+                <label className="field">
+                  <span>Araç</span>
+                  <input
+                    value={form.vehicle}
+                    onChange={(event) => updateField("vehicle", event.target.value)}
+                    placeholder="Marka / model / yıl"
+                  />
+                </label>
+                <label className="field field--full">
+                  <span>Mesajınız *</span>
+                  <textarea
+                    rows={4}
+                    value={form.message}
+                    onChange={(event) => updateField("message", event.target.value)}
+                    placeholder="İstediğiniz malzeme, renk veya uygulama detayı"
+                    required
+                  />
+                </label>
+              </div>
+
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={form.privacyConsent}
+                  onChange={(event) => updateField("privacyConsent", event.target.checked)}
+                />
+                <span>
+                  <Link href="/kvkk" target="_blank">
+                    KVKK Aydınlatma Metni
+                  </Link>{" "}
+                  kapsamında bilgilerimin teklif talebim için işlenmesini kabul ediyorum.
+                </span>
+              </label>
+
+              <button className="btn btn-primary btn-block" type="submit" disabled={status.state === "sending"}>
+                {status.state === "sending" ? "Gönderiliyor…" : "Teklif talebi gönder"}
+              </button>
+
+              {status.message ? (
+                <p className={`form-status form-status--${status.state}`} role="status">
+                  {status.message}
+                </p>
+              ) : null}
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </>
   );
 }

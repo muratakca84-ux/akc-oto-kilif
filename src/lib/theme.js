@@ -1,205 +1,151 @@
+// Tema sürümü: yalnızca yeni panelden kaydedilmiş temalar canlı siteye uygulanır.
+// Eski (v1) panelden kalan özel renkler kurumsal varsayılanı bozmasın diye yok sayılır.
+export const THEME_VERSION = 2;
+
 export const themePresets = [
   {
     id: "classic",
-    name: "Kurumsal Aydınlık",
-    description: "Kırık beyaz zemin, güçlü lacivert metin ve ölçülü altın vurgu.",
+    name: "Kurumsal Mavi",
+    description: "Logo ile uyumlu açık zemin, lacivert metin ve AKC mavisi vurgu.",
     colors: {
-      themeBackground: "#f7f7f3",
-      themeForeground: "#172033",
-      themeMuted: "#687182",
-      themeAccent: "#b78635",
-      themeAccentSoft: "#ead7a9",
-      themeAccentDark: "#75551f",
+      themeBackground: "#f4f6f9",
+      themeForeground: "#0b1626",
+      themeMuted: "#566173",
+      themeAccent: "#1572c9",
+      themeAccentSoft: "#e3effb",
+      themeAccentDark: "#0c4f91",
       themeSurface: "#ffffff",
-      themeLine: "rgba(23,32,51,0.11)",
-      themeLineStrong: "rgba(183,134,53,0.36)",
+      themeLine: "rgba(11,22,38,0.10)",
+      themeLineStrong: "rgba(11,22,38,0.18)",
+      themeButtonText: "#ffffff",
+    },
+  },
+  {
+    id: "marine",
+    name: "Gece Mavisi",
+    description: "Koyu lacivert zemin, parlak mavi vurgu. Logo ile bire bir uyumlu.",
+    colors: {
+      themeBackground: "#08111e",
+      themeForeground: "#eef3f9",
+      themeMuted: "#97a3b6",
+      themeAccent: "#2b94ec",
+      themeAccentSoft: "#12243b",
+      themeAccentDark: "#8cc6f7",
+      themeSurface: "#0f1a2b",
+      themeLine: "rgba(255,255,255,0.10)",
+      themeLineStrong: "rgba(255,255,255,0.18)",
       themeButtonText: "#ffffff",
     },
   },
   {
     id: "luxury",
-    name: "Lüks Koyu",
-    description: "Daha koyu, sofistike ve modern görünüm.",
+    name: "Grafit",
+    description: "Antrasit zemin ve ölçülü mavi vurgu; sade ve ağırbaşlı.",
     colors: {
-      themeBackground: "#05070d",
-      themeForeground: "#f5f7ff",
-      themeMuted: "#aab3c6",
-      themeAccent: "#8f6dff",
-      themeAccentSoft: "#c5b4ff",
-      themeAccentDark: "#5738aa",
-      themeSurface: "#0f1324",
-      themeLine: "rgba(255,255,255,0.12)",
-      themeLineStrong: "rgba(143,109,255,0.28)",
-      themeButtonText: "#f7f5ff",
+      themeBackground: "#0f1114",
+      themeForeground: "#f1f2f4",
+      themeMuted: "#9aa0a8",
+      themeAccent: "#3a9be8",
+      themeAccentSoft: "#1a2230",
+      themeAccentDark: "#9ccdf5",
+      themeSurface: "#171a1f",
+      themeLine: "rgba(255,255,255,0.09)",
+      themeLineStrong: "rgba(255,255,255,0.16)",
+      themeButtonText: "#ffffff",
     },
   },
   {
     id: "oak",
-    name: "Doğal Ahşap",
-    description: "Toprak tonlarıyla sıcak ve doğal bir his.",
+    name: "Kum Beji",
+    description: "Sıcak açık zemin ve konyak vurgu; deri döşeme hissi.",
     colors: {
-      themeBackground: "#17110c",
-      themeForeground: "#f6ece1",
-      themeMuted: "#c29c76",
-      themeAccent: "#b96d2b",
-      themeAccentSoft: "#e4b07a",
-      themeAccentDark: "#7b4015",
-      themeSurface: "#24190f",
-      themeLine: "rgba(255,255,255,0.13)",
-      themeLineStrong: "rgba(185,109,43,0.28)",
-      themeButtonText: "#1a120c",
-    },
-  },
-  {
-    id: "marine",
-    name: "Deniz Mavisi",
-    description: "Serin ve profesyonel bir tema, modern marka hissi verir.",
-    colors: {
-      themeBackground: "#07131b",
-      themeForeground: "#eef7ff",
-      themeMuted: "#8eb0c8",
-      themeAccent: "#2f8ac7",
-      themeAccentSoft: "#8ed2ff",
-      themeAccentDark: "#125a8b",
-      themeSurface: "#102534",
-      themeLine: "rgba(255,255,255,0.12)",
-      themeLineStrong: "rgba(47,138,199,0.28)",
-      themeButtonText: "#07131b",
+      themeBackground: "#f6f4f0",
+      themeForeground: "#1d1813",
+      themeMuted: "#685f55",
+      themeAccent: "#9a5b26",
+      themeAccentSoft: "#f1e6da",
+      themeAccentDark: "#6b3d17",
+      themeSurface: "#ffffff",
+      themeLine: "rgba(29,24,19,0.10)",
+      themeLineStrong: "rgba(29,24,19,0.18)",
+      themeButtonText: "#ffffff",
     },
   },
   {
     id: "forest",
-    name: "Yeşil Konfor",
-    description: "Sakin, temiz ve doğal bir marka görünümü.",
+    name: "Kurumsal Yeşil",
+    description: "Açık zemin, koyu yeşil vurgu; sakin ve güven veren.",
     colors: {
-      themeBackground: "#08140f",
-      themeForeground: "#ecf7ef",
-      themeMuted: "#8fb49a",
-      themeAccent: "#2f8b5e",
-      themeAccentSoft: "#8ed2a8",
-      themeAccentDark: "#165238",
-      themeSurface: "#11261d",
-      themeLine: "rgba(255,255,255,0.12)",
-      themeLineStrong: "rgba(47,139,94,0.28)",
-      themeButtonText: "#06120d",
+      themeBackground: "#f4f6f5",
+      themeForeground: "#0f1d17",
+      themeMuted: "#56645d",
+      themeAccent: "#1d7a52",
+      themeAccentSoft: "#e2f1ea",
+      themeAccentDark: "#11553a",
+      themeSurface: "#ffffff",
+      themeLine: "rgba(15,29,23,0.10)",
+      themeLineStrong: "rgba(15,29,23,0.18)",
+      themeButtonText: "#ffffff",
     },
   },
 ];
 
 export const defaultThemeState = {
   themePreset: "classic",
-  themeName: "Kurumsal Aydınlık",
-  themeDescription: "Ferah, güven veren ve güçlü kurumsal görünüm.",
-  themeBackground: "#f7f7f3",
-  themeForeground: "#172033",
-  themeMuted: "#687182",
-  themeAccent: "#d6a54b",
-  themeAccentSoft: "#ead7a9",
-  themeAccentDark: "#75551f",
-  themeSurface: "#ffffff",
-  themeLine: "rgba(23,32,51,0.11)",
-  themeLineStrong: "rgba(183,134,53,0.36)",
-  themeButtonText: "#ffffff",
+  themeName: themePresets[0].name,
+  themeDescription: themePresets[0].description,
+  ...themePresets[0].colors,
 };
 
 export function getPresetById(id) {
   return themePresets.find((preset) => preset.id === id) || themePresets[0];
 }
 
-function safeValue(value, fallback) {
-  if (value === undefined || value === null || value === "") {
-    return fallback;
-  }
-
-  return value;
+function pick(value, fallback) {
+  return value === undefined || value === null || value === "" ? fallback : value;
 }
 
-export function buildThemePalette(theme = {}) {
-  let resolved = {
-    ...defaultThemeState,
-    ...theme,
-  };
+/** Firestore'daki tema alanlarını güvenli bir tema durumuna çevirir. */
+export function resolveTheme(settings = {}) {
+  if (Number(settings.themeVersion) !== THEME_VERSION) return defaultThemeState;
 
-  // Transparently migrate the original dark Classic palette for existing sites.
-  // Other presets and custom palettes remain untouched.
-  const usesLegacyClassic = resolved.themePreset === "classic";
-
-  if (usesLegacyClassic) {
-    resolved = {
-      ...resolved,
-      ...themePresets[0].colors,
-      themeName: themePresets[0].name,
-      themeDescription: themePresets[0].description,
-    };
+  if (settings.themePreset && settings.themePreset !== "custom") {
+    const preset = getPresetById(settings.themePreset);
+    return { ...defaultThemeState, themePreset: preset.id, ...preset.colors };
   }
 
-  const background = safeValue(
-    resolved.themeBackground,
-    defaultThemeState.themeBackground
-  );
+  const resolved = { ...defaultThemeState };
+  Object.keys(themePresets[0].colors).forEach((key) => {
+    resolved[key] = pick(settings[key], defaultThemeState[key]);
+  });
+  resolved.themePreset = "custom";
+  return resolved;
+}
 
-  const foreground = safeValue(
-    resolved.themeForeground,
-    defaultThemeState.themeForeground
-  );
+function isDarkColor(hex) {
+  const value = String(hex || "").replace("#", "");
+  if (value.length !== 6) return false;
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+}
 
-  const muted = safeValue(resolved.themeMuted, defaultThemeState.themeMuted);
-
-  const accent = safeValue(resolved.themeAccent, defaultThemeState.themeAccent);
-
-  const accentSoft = safeValue(
-    resolved.themeAccentSoft,
-    defaultThemeState.themeAccentSoft
-  );
-
-  const accentDark = safeValue(
-    resolved.themeAccentDark,
-    defaultThemeState.themeAccentDark
-  );
-
-  const surface = safeValue(
-    resolved.themeSurface,
-    defaultThemeState.themeSurface
-  );
-
-  const line = safeValue(resolved.themeLine, defaultThemeState.themeLine);
-
-  const lineStrong = safeValue(
-    resolved.themeLineStrong,
-    defaultThemeState.themeLineStrong
-  );
-
-  const buttonText = safeValue(
-    resolved.themeButtonText,
-    defaultThemeState.themeButtonText
-  );
+/** Tema durumunu CSS değişkenlerine çevirir. */
+export function buildThemePalette(theme = defaultThemeState) {
+  const t = { ...defaultThemeState, ...theme };
 
   return {
-    "--background": background,
-    "--foreground": foreground,
-    "--muted": muted,
-
-    "--gold": accent,
-    "--gold-soft": accentSoft,
-    "--gold-dark": accentDark,
-
-    "--black": surface,
-    "--black-2": surface,
-    "--brown": surface,
-    "--green": accentDark,
-
-    "--line": line,
-    "--line-strong": lineStrong,
-
-    "--glass": "rgba(255, 255, 255, 0.76)",
-    "--glass-strong": "rgba(255, 255, 255, 0.94)",
-
-    "--shadow-soft": "0 18px 55px rgba(23, 32, 51, 0.08)",
-    "--shadow-strong": "0 34px 90px rgba(23, 32, 51, 0.14)",
-
-    "--accent": accent,
-    "--accent-soft": accentSoft,
-    "--surface": surface,
-    "--button-text": buttonText,
+    "--bg": t.themeBackground,
+    "--text": t.themeForeground,
+    "--muted": t.themeMuted,
+    "--accent": t.themeAccent,
+    "--accent-soft": t.themeAccentSoft,
+    "--accent-strong": t.themeAccentDark,
+    "--surface": t.themeSurface,
+    "--line": t.themeLine,
+    "--line-strong": t.themeLineStrong,
+    "--on-accent": t.themeButtonText,
+    "color-scheme": isDarkColor(t.themeBackground) ? "dark" : "light",
   };
 }

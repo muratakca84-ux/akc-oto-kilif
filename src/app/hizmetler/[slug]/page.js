@@ -1,10 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import FloatingContactButtons from "@/components/FloatingContactButtons";
+import Icon from "@/components/Icon";
 import { absoluteUrl, BUSINESS, safeJsonLd, SERVICE_PAGES } from "@/lib/seo";
 
 export const dynamicParams = false;
+
+const STEPS = [
+  ["Araç bilgisi", "Marka, model, yıl ve koltuk tipi alınır."],
+  ["Tasarım seçimi", "Malzeme, renk ve dikiş seçenekleri belirlenir."],
+  ["Üretim planı", "Uygulama kapsamı, süre ve fiyat netleştirilir."],
+  ["Profesyonel montaj", "Ürün araca kontrollü biçimde uygulanır."],
+];
 
 export function generateStaticParams() {
   return SERVICE_PAGES.map(({ slug }) => ({ slug }));
@@ -47,6 +57,7 @@ export default async function ServicePage({ params }) {
 
   const url = absoluteUrl(`/hizmetler/${service.slug}`);
   const whatsappUrl = `https://wa.me/${BUSINESS.whatsapp}?text=${encodeURIComponent(`Merhaba AKC Oto Kılıf, ${service.title} hizmeti için teklif almak istiyorum.`)}`;
+  const phoneHref = `tel:+${BUSINESS.phone.replace(/\D/g, "")}`;
   const related = SERVICE_PAGES.filter((item) => item.slug !== service.slug);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -79,60 +90,118 @@ export default async function ServicePage({ params }) {
   };
 
   return (
-    <main className="site-shell service-page">
+    <>
+      <SiteHeader />
+      <FloatingContactButtons />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
-      <nav className="service-nav" aria-label="Ana menü">
-        <Link className="brand" href="/">
-          <span className="brand-logo-frame"><Image className="brand-logo" src="/images/akc-logo-square.png" alt="AKC Oto Kılıf logo" width={72} height={72} /></span>
-          <span><strong>AKC Oto Kılıf</strong><small>Konya • Özel dikim • Montaj</small></span>
-        </Link>
-        <div className="service-nav-links"><Link href="/">Ana Sayfa</Link><Link href="/urunler">Ürünler</Link><a href={`tel:${BUSINESS.phone.replace(/\s/g, "")}`}>Hemen Ara</a></div>
-      </nav>
-
-      <div className="service-breadcrumb" aria-label="İçerik yolu"><Link href="/">Ana Sayfa</Link><span>/</span><span>{service.title}</span></div>
-
-      <section className="service-hero">
-        <div className="service-hero-copy">
-          <p className="eyebrow">{service.eyebrow}</p>
-          <h1>{service.heading}</h1>
-          <p>{service.intro}</p>
-          <div className="hero-actions">
-            <a className="primary-btn" href={whatsappUrl} target="_blank" rel="noreferrer">WhatsApp ile Teklif Al</a>
-            <a className="secondary-btn" href={`tel:${BUSINESS.phone.replace(/\s/g, "")}`}>{BUSINESS.phone}</a>
+      <main>
+        <section className="page-hero page-hero--split">
+          <div className="container page-hero-grid">
+            <div>
+              <nav className="breadcrumb" aria-label="İçerik yolu">
+                <Link href="/">Ana Sayfa</Link>
+                <Icon name="chevron" size={14} />
+                <Link href="/#hizmetler">Hizmetler</Link>
+                <Icon name="chevron" size={14} />
+                <span>{service.title}</span>
+              </nav>
+              <p className="eyebrow">{service.eyebrow}</p>
+              <h1>{service.heading}</h1>
+              <p className="lead">{service.intro}</p>
+              <div className="actions">
+                <a className="btn btn-primary btn-lg" href={whatsappUrl} target="_blank" rel="noreferrer">
+                  <Icon name="whatsapp" size={18} /> WhatsApp ile teklif alın
+                </a>
+                <a className="btn btn-outline btn-lg" href={phoneHref}>
+                  <Icon name="phone" size={18} /> {BUSINESS.phone}
+                </a>
+              </div>
+            </div>
+            <div className="page-hero-media">
+              <Image src={service.image} alt={`${service.title} örnek uygulama`} width={1200} height={900} priority />
+            </div>
           </div>
-        </div>
-        <div className="service-hero-image"><Image src={service.image} alt={`${service.title} örnek uygulama`} width={1200} height={900} priority /></div>
-      </section>
+        </section>
 
-      <section className="service-content">
-        <div>
-          <p className="eyebrow">AKC uygulama standardı</p>
-          <h2>{service.title} hizmetinde neler sunuyoruz?</h2>
-          <p>Doğru sonuç için araç bilgisi ve beklenti önce netleştirilir. Malzeme yalnızca görünümüne göre değil, kullanım yoğunluğu ve bakım ihtiyacına göre seçilir. Üretim sonrası montajda koltuk formunun korunması ve temiz bitiş hedeflenir.</p>
-        </div>
-        <ul>{service.benefits.map((benefit) => <li key={benefit}><span>✓</span>{benefit}</li>)}</ul>
-      </section>
+        <section className="section">
+          <div className="container split split--text">
+            <div className="split-copy">
+              <p className="eyebrow">Kapsam</p>
+              <h2>{service.title} hizmetinde neler sunuyoruz?</h2>
+              <p>
+                Doğru sonuç için araç bilgisi ve beklenti önce netleştirilir. Malzeme yalnızca görünümüne göre değil,
+                kullanım yoğunluğu ve bakım ihtiyacına göre seçilir. Montajda koltuk formunun korunması ve temiz bitiş
+                hedeflenir.
+              </p>
+            </div>
+            <ul className="check-list check-list--boxed">
+              {service.benefits.map((benefit) => (
+                <li key={benefit}>
+                  <Icon name="check" size={18} />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
-      <section className="service-process">
-        <p className="eyebrow">Nasıl ilerliyoruz?</p>
-        <h2>Bilgiden montaja dört net adım</h2>
-        <div className="service-steps">
-          {[['01', 'Araç bilgisi', 'Marka, model, yıl ve koltuk tipi alınır.'], ['02', 'Tasarım seçimi', 'Malzeme, renk ve dikiş seçenekleri belirlenir.'], ['03', 'Üretim planı', 'Uygulama kapsamı, süre ve teklif netleştirilir.'], ['04', 'Profesyonel montaj', 'Ürün araca kontrollü biçimde uygulanır.']].map(([no, title, text]) => <article key={no}><small>{no}</small><h3>{title}</h3><p>{text}</p></article>)}
-        </div>
-      </section>
+        <section className="section section-alt">
+          <div className="container">
+            <header className="section-head">
+              <p className="eyebrow">Çalışma süreci</p>
+              <h2>Bilgiden montaja dört adım.</h2>
+            </header>
+            <ol className="steps">
+              {STEPS.map(([title, text], index) => (
+                <li key={title}>
+                  <span className="step-no">{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
 
-      <section className="service-local">
-        <div><p className="eyebrow">Konya / Karatay</p><h2>Atölyemize gelmeden önce araç bilgisiyle fiyat alın.</h2><p>{BUSINESS.address}. Konya merkezden WhatsApp üzerinden marka, model, yıl ve koltuk fotoğrafını göndererek uygun seçenekleri öğrenebilirsiniz.</p></div>
-        <a className="primary-btn" href={whatsappUrl} target="_blank" rel="noreferrer">Araç Bilgisi Gönder</a>
-      </section>
+        <section className="section section-dark">
+          <div className="container cta-band">
+            <div>
+              <p className="eyebrow eyebrow--light">Konya · Karatay</p>
+              <h2>Atölyeye gelmeden önce fiyat alın.</h2>
+              <p>
+                {BUSINESS.address}. Marka, model, yıl ve koltuk fotoğrafını WhatsApp&apos;tan göndererek uygun
+                seçenekleri öğrenebilirsiniz.
+              </p>
+            </div>
+            <a className="btn btn-primary btn-lg" href={whatsappUrl} target="_blank" rel="noreferrer">
+              Araç bilgisi gönderin <Icon name="arrow" size={18} />
+            </a>
+          </div>
+        </section>
 
-      <section className="related-services">
-        <p className="eyebrow">Diğer hizmetler</p><h2>Aracınız için diğer çözümler</h2>
-        <div>{related.map((item) => <Link key={item.slug} href={`/hizmetler/${item.slug}`}><span>{item.title}</span><small>Detayları gör →</small></Link>)}</div>
-      </section>
+        <section className="section">
+          <div className="container">
+            <header className="section-head">
+              <p className="eyebrow">Diğer hizmetler</p>
+              <h2>Aracınız için diğer çözümler</h2>
+            </header>
+            <div className="related-grid">
+              {related.map((item) => (
+                <Link key={item.slug} className="related-card" href={`/hizmetler/${item.slug}`}>
+                  <strong>{item.title}</strong>
+                  <span>{item.description}</span>
+                  <span className="link-arrow">
+                    İncele <Icon name="arrow" size={16} />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
-    </main>
+    </>
   );
 }

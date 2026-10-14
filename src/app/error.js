@@ -4,26 +4,16 @@ import Link from "next/link";
 
 export default function Error({ reset }) {
   return (
-    <main className="site-shell page-shell">
-      <section className="modern-cta-card" style={{ marginTop: 60 }}>
-        <div className="modern-cta-copy">
-          <p className="eyebrow">Hata</p>
-          <h2>Bir şeyler yanlış gitti.</h2>
-          <p>
-            Sayfa yüklenirken beklenmeyen bir sorun oluştu. Yeniden denemek
-            veya ana sayfaya dönmek için aşağıdaki butonları kullanabilirsin.
-          </p>
+    <main className="status-page">
+      <div className="container container--narrow">
+        <p className="eyebrow">Beklenmeyen hata</p>
+        <h1>Sayfa yüklenirken bir sorun oluştu.</h1>
+        <p className="lead">Lütfen tekrar deneyin. Sorun devam ederse bizi telefonla arayabilirsiniz.</p>
+        <div className="actions">
+          <button className="btn btn-primary" type="button" onClick={() => reset()}>Tekrar dene</button>
+          <Link className="btn btn-outline" href="/">Ana sayfaya dön</Link>
         </div>
-
-        <div className="modern-cta-actions">
-          <button className="primary-btn" type="button" onClick={() => reset()}>
-            Yeniden Dene
-          </button>
-          <Link className="secondary-btn" href="/">
-            Ana Sayfaya Dön
-          </Link>
-        </div>
-      </section>
+      </div>
     </main>
   );
 }

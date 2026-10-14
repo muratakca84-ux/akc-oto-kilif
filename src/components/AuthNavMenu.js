@@ -5,64 +5,58 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import Icon from "@/components/Icon";
 
 export default function AuthNavMenu() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState({ loading: true, user: null, name: "" });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      setUser(currentUser);
-
-      if (!currentUser) {
-        setProfile(null);
-        setLoading(false);
+    return onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setState({ loading: false, user: null, name: "" });
         return;
       }
 
+      let name = user.displayName || "";
       try {
-        const profileSnap = await getDoc(doc(db, "users", currentUser.uid));
-        setProfile(profileSnap.exists() ? profileSnap.data() : null);
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists() && snap.data()?.displayName) name = snap.data().displayName;
       } catch {
-        setProfile(null);
-      } finally {
-        setLoading(false);
+        // profil okunamazsa auth bilgisiyle devam edilir
       }
+      setState({ loading: false, user, name: name || user.email || "Hesabım" });
     });
-
-    return () => unsubscribe();
   }, []);
 
-  if (loading) {
-    return <span className="nav-auth-pill">Yükleniyor…</span>;
+  if (state.loading) {
+    return <span className="nav-account nav-account--placeholder" aria-hidden="true" />;
   }
 
-  if (!user) {
+  if (!state.user) {
     return (
-      <div className="nav-auth-links">
-        <Link href="/login">Giriş</Link>
-        <Link href="/register">Üye Ol</Link>
-      </div>
+      <Link className="nav-account" href="/login">
+        <Icon name="user" size={18} />
+        <span>Giriş</span>
+      </Link>
     );
   }
 
-  const displayName = profile?.displayName || user?.displayName || user?.email || "Profil";
-  const initials = String(displayName).trim().charAt(0).toUpperCase() || "P";
+  const firstName = String(state.name).split(/[\s@]/)[0];
 
   return (
-    <div className="nav-auth-links nav-auth-links--user">
-      <Link className="nav-profile-link" href="/profil">
-        <span className="nav-profile-avatar">{initials}</span>
-        <span className="nav-profile-copy">
-          <strong>{displayName}</strong>
-          <small>{profile?.role === "admin" ? "Yönetici" : "Profilim"}</small>
-        </span>
+    <div className="nav-account-group">
+      <Link className="nav-account" href="/profil" title={state.name}>
+        <span className="nav-avatar">{firstName.charAt(0).toUpperCase()}</span>
+        <span>{firstName}</span>
       </Link>
-
-      <button type="button" className="nav-logout-btn" onClick={() => signOut(auth)}>
-        Çıkış
+      <button
+        type="button"
+        className="nav-icon-btn"
+        onClick={() => signOut(auth)}
+        aria-label="Çıkış yap"
+        title="Çıkış yap"
+      >
+        <Icon name="logout" size={18} />
       </button>
     </div>
   );
