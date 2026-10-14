@@ -4,8 +4,13 @@ import SiteFooter from "@/components/SiteFooter";
 import ProductCatalog from "@/components/ProductCatalog";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import Icon from "@/components/Icon";
+import { getServisHazirProducts } from "@/lib/servishazir";
 
-export default function ProductsPage() {
+// Servis Hazır ürünleri 5 dakikada bir tazelenir.
+export const revalidate = 300;
+
+export default async function ProductsPage() {
+  const externalProducts = await getServisHazirProducts();
   return (
     <>
       <SiteHeader />
@@ -29,7 +34,7 @@ export default function ProductsPage() {
 
         <section className="section section--tight">
           <div className="container">
-            <ProductCatalog />
+            <ProductCatalog externalProducts={externalProducts} />
           </div>
         </section>
 

@@ -1583,7 +1583,8 @@ a.topbar-item:hover {
 
 .product-spec {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   margin: 4px 0 0;
   font-size: 14px;
 }

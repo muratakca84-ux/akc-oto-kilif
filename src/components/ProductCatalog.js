@@ -38,7 +38,7 @@ const FALLBACK_PRODUCTS = [
   },
 ];
 
-export default function ProductCatalog() {
+export default function ProductCatalog({ externalProducts = [] }) {
   const contact = getContact(useSiteSettings());
   const [products, setProducts] = useState(null);
   const [search, setSearch] = useState("");
@@ -56,7 +56,11 @@ export default function ProductCatalog() {
     );
   }, []);
 
-  const list = useMemo(() => (products && products.length ? products : FALLBACK_PRODUCTS), [products]);
+  // Admin ürünleri + Servis Hazır ürünleri tek katalog; ikisi de boşsa örnek ürünler.
+  const list = useMemo(() => {
+    const merged = [...(products || []), ...externalProducts];
+    return merged.length ? merged : FALLBACK_PRODUCTS;
+  }, [products, externalProducts]);
 
   const categories = useMemo(
     () => ["Tümü", ...Array.from(new Set(list.map((item) => item.category).filter(Boolean)))],
@@ -68,7 +72,7 @@ export default function ProductCatalog() {
     return list.filter((product) => {
       if (category !== "Tümü" && product.category !== category) return false;
       if (!q) return true;
-      return [product.title, product.description, product.material, product.category]
+      return [product.title, product.description, product.material, product.brand, product.category]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase("tr")
@@ -82,6 +86,7 @@ export default function ProductCatalog() {
       `Merhaba, "${product.title || "ürün"}" hakkında bilgi ve teklif almak istiyorum.`,
       product.category ? `Kategori: ${product.category}` : "",
       product.material ? `Malzeme: ${product.material}` : "",
+      product.brand ? `Marka: ${product.brand}` : "",
       price.hasRealPrice ? `Listelenen fiyat: ${price.finalText}` : "",
       "Aracım: ",
     ];
@@ -116,7 +121,7 @@ export default function ProductCatalog() {
         </label>
       </div>
 
-      {products === null ? (
+      {products === null && externalProducts.length === 0 ? (
         <p className="catalog-empty">Ürünler yükleniyor…</p>
       ) : filtered.length === 0 ? (
         <p className="catalog-empty">Aramanıza uygun ürün bulunamadı.</p>
@@ -133,15 +138,26 @@ export default function ProductCatalog() {
                     loading="lazy"
                   />
                   {product.isFeatured ? <span className="product-flag">Öne çıkan</span> : null}
+                  {product.source === "servishazir" && !product.inStock ? <span className="product-flag">Stok sorunuz</span> : null}
                 </div>
                 <div className="product-body">
                   <span className="product-category">{product.category || "Özel üretim"}</span>
                   <h3>{product.title}</h3>
                   {product.description ? <p>{product.description}</p> : null}
-                  {product.material ? (
+                  {product.material || product.brand ? (
                     <dl className="product-spec">
-                      <dt>Malzeme</dt>
-                      <dd>{product.material}</dd>
+                      {product.material ? (
+                        <>
+                          <dt>Malzeme</dt>
+                          <dd>{product.material}</dd>
+                        </>
+                      ) : null}
+                      {product.brand ? (
+                        <>
+                          <dt>Marka</dt>
+                          <dd>{product.brand}</dd>
+                        </>
+                      ) : null}
                     </dl>
                   ) : null}
                   <div className="product-footer">
