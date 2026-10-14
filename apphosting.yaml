@@ -1,0 +1,11 @@
+# Firebase App Hosting ayarları
+# https://firebase.google.com/docs/app-hosting/configure
+
+env:
+  # Servis Hazır (ServisKanıt) işletme kimliği: uygulamada "Web sitesinde ve
+  # vitrinde göster" açık ürünler /urunler kataloğunda yayınlanır.
+  # Gizli değildir; herkese açık vitrin adresinde zaten görünür.
+  - variable: SERVISHAZIR_BUSINESS_ID
+    value: business_I4MtAG4wcFZ3BedCmU3HNJkRUj23
+    availability:
+      - RUNTIME
